@@ -1,0 +1,108 @@
+{
+"LLM": {
+    "glm_llm": {
+        "base_url": "https://open.bigmodel.cn/api/paas/v4",
+        "api_key": "your_glm_api_key",
+        "model": [
+            "glm-4-flash-250414",
+            "glm-4-flash",
+            "glm-4-plus",
+            "glm-4-air",
+            "glm-z1-flash",
+            "glm-z1-air"
+            ]
+        },
+    "qwen_llm": {
+        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "api_key": "your_qwen_api_key",
+        "model": [
+            "qwen3-235b-a22b",
+            "qwen3-32b",
+            "qwen-turbo-2025-04-28",
+            "qwen-turbo-2025-02-11",
+            "qwen-plus-2025-04-28",
+            "qwen-plus-2025-01-25",
+            "qwen-max-2025-01-25"
+            ]
+        },
+    "siliconflow_llm": {
+        "base_url": "https://api.siliconflow.cn/v1",
+        "api_key": "your_siliconflow_api_key",
+        "model": [
+            "deepseek-ai/DeepSeek-R1",
+            "deepseek-ai/DeepSeek-V3",
+            "moonshotai/Kimi-K2-Instruct",
+            "baidu/ERNIE-4.5-300B-A47B",
+            "tencent/Hunyuan-A13B-Instruct",
+            "MiniMaxAI/MiniMax-M1-80k",
+            "THUDM/GLM-4-9B-0414"
+            ]
+        }
+    },
+"VLM": {
+    "gemini_vlm": {
+        "base_url": "https://aiclound.vip/v1",
+        "api_key": ""your_gemini_api_key",
+        "model": [
+            "gemini-2.5-flash-lite-preview-06-17",
+            "gemini-2.5-flash-preview-04-17",
+            "gemini-2.5-flash",
+            "gemini-2.5-pro-preview-06-05"
+            ]
+        },
+    "glm_vlm": {
+        "base_url": "https://open.bigmodel.cn/api/paas/v4",
+        "api_key": "your_glm_api_key",
+        "model": [
+            "glm-4.1v-thinking-flash",
+            "glm-4.1v-thinking-flashx",
+            "glm-4v-flash",
+            "glm-4v-plus",
+            "glm-4v"
+            ]
+        },
+    "qwen_vlm": {
+        "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "api_key": "your_qwen_api_key",
+        "model": [
+            "qwen2.5-vl-72b-instruct",
+            "qwen2.5-vl-32b-instruct",
+            "qwen-vl-max-2025-04-08",
+            "qwen-vl-max-2025-04-02",
+            "qwen-vl-max-2025-01-25",
+            "qwen-vl-plus-2025-05-07",
+            "qwen-vl-plus-2025-01-25",
+            "qvq-max-2025-05-15",
+            "qvq-max-2025-03-25",
+            "qvq-max-latest",
+            "qvq-max",
+            "qwen-vl-ocr-2025-04-13"
+            ]
+        },
+    "siliconflow_vlm": {
+        "base_url": "https://api.siliconflow.cn/v1",
+        "api_key": "your_siliconflow_api_key",
+        "model": [
+            "THUDM/GLM-4.1V-9B-Thinking",
+            "Pro/THUDM/GLM-4.1V-9B-Thinking",
+            "Qwen/Qwen2.5-VL-72B-Instruct",
+            "Qwen/Qwen2.5-VL-32B-Instruct",
+            "Qwen/Qwen2-VL-72B-Instruct",
+            "Qwen/QVQ-72B-Preview",
+            "deepseek-ai/deepseek-vl2"
+            ]
+        }
+    },
+"IMAGE": {
+    "glm_image": {
+        "base_url": "https://open.bigmodel.cn/api/paas/v4/images/generations",
+        "api_key": "your_glm_api_key",
+        "model": ["cogview-4-250304", "cogview-4", "cogview-3-flash"]
+        },    
+    "qwen_imageedit": {
+        "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis",
+        "api_key": "your_qwen_api_key",
+        "model": "wanx2.1-imageedit"
+        }
+    }
+}
