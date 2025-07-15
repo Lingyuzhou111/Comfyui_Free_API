@@ -1,6 +1,6 @@
 # ComfyUI Free API 插件
 
-> 本插件旨在将一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析等功能。
+> 一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析等功能。
 
 > 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有大量免费赠额，新手友好。
 
@@ -123,7 +123,18 @@ A: 尝试：
 
 ## 📖 示例工作流
 
-查看`Examples`文件夹中的示例图片，了解各种使用场景的工作流配置。
+#### LLM API工作流
+<img width="1046" height="1129" alt="LLM-API示例" src="https://github.com/user-attachments/assets/e499e5a0-0850-47aa-ab1d-8de62cfb2f75" />
+
+#### VLM API工作流
+<img width="1893" height="1195" alt="VLM-API示例" src="https://github.com/user-attachments/assets/c81ed02a-94ed-44f5-a9ad-a7add17467f1" />
+
+#### GLM视频分析工作流
+<img width="1925" height="940" alt="GLM视频推理示例" src="https://github.com/user-attachments/assets/3fc4734f-e53c-4558-b019-6d0eee96aadf" />
+
+#### Qwen图像编辑工作流
+<img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
+
 
 ## 🤝 贡献
 
