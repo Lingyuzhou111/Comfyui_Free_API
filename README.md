@@ -129,12 +129,14 @@ A: 尝试：
 #### VLM API工作流
 <img width="1893" height="1195" alt="VLM-API示例" src="https://github.com/user-attachments/assets/c81ed02a-94ed-44f5-a9ad-a7add17467f1" />
 
-#### GLM视频分析工作流
+#### GLM API视频分析工作流
 <img width="1925" height="940" alt="GLM视频推理示例" src="https://github.com/user-attachments/assets/3fc4734f-e53c-4558-b019-6d0eee96aadf" />
 
-#### Qwen图像编辑工作流
+#### Qwen API图像编辑工作流
 <img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
 
+#### GLM API文生图工作流
+<img width="1275" height="945" alt="GLM图片生成示例" src="https://github.com/user-attachments/assets/6eed6559-73c6-47f1-8f96-234754251545" />
 
 ## 🤝 贡献
 
