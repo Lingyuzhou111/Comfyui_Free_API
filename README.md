@@ -1,11 +1,14 @@
 # ComfyUI Free API 插件
 
-一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析等功能。
+> 本插件旨在将一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析等功能。
 
-## 🚀 功能特性
+> 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有大量免费赠额，新手友好。
+
+> 通过在插件目录下的config.json文件中添加更多`model`名称，然后重启ComfyUI即可实现自定义添加模型。
+
+## 🚀 功能特性 
 
 ### 📝 文本对话 (LLM)
-- **Gemini LLM**: Google Gemini大语言模型
 - **GLM LLM**: 智谱AI GLM系列模型
 - **Qwen LLM**: 阿里通义千问系列模型
 - **Siliconflow LLM**: Siliconflow平台多种模型
@@ -21,20 +24,27 @@
 - **Qwen VLM**: 阿里通义千问视觉语言模型
 - **Siliconflow VLM**: Siliconflow平台视觉语言模型
 
-## 📦 安装
+### 方法1:手动安装
 
 1. 将整个`Comfyui_Free_API`文件夹复制到ComfyUI的`custom_nodes`目录
 2. 重启ComfyUI
 3. 在节点选择器中找到`API`分类下的相关节点
+
+### 方法2: Git克隆
+
+```bash
+cd ComfyUI/custom_nodes
+git clone https://github.com/Lingyuzhou111/Comfyui_Free_API.git
+```
 
 ## ⚙️ 配置
 
 ### 1. 获取API密钥
 
 - **Gemini**: 访问 [Google AI Studio](https://makersuite.google.com/app/apikey) 获取API密钥
-- **GLM**: 访问 [智谱AI开放平台](https://open.bigmodel.cn/) 获取API密钥
+- **GLM**: 访问 [智谱AI开放平台](https://www.bigmodel.cn/invite?icode=X2DxJtbSTtZrPmDGSjIgW%2Bnfet45IvM%2BqDogImfeLyI%3D) 获取API密钥
 - **Qwen**: 访问 [阿里云通义千问](https://dashscope.console.aliyun.com/) 获取API密钥
-- **Siliconflow**: 访问 [Siliconflow平台](https://www.siliconflow.cn/) 获取API密钥
+- **Siliconflow**: 访问 [Siliconflow平台](https://cloud.siliconflow.cn/i/IvfkhvET) 获取API密钥
 
 ### 2. 修改配置文件
 
@@ -43,11 +53,11 @@
 ```json
 {
   "LLM": {
-    "gemini_llm": {
-      "api_key": "你的Gemini API密钥"
-    },
     "glm_llm": {
       "api_key": "你的GLM API密钥"
+    },
+    "qwen_llm": {
+      "api_key": "你的Qwen API密钥"
     }
   }
 }
