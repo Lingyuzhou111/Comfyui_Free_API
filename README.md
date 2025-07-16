@@ -1,8 +1,8 @@
 # ComfyUI Free API 插件
 
-> 一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析等功能。
+> 一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析、视频分析等功能。
 
-> 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有大量免费赠额，新手友好。
+> 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有免费使用额度，新手友好。
 
 > 通过在插件目录下的config.json文件中添加更多`model`名称，然后重启ComfyUI即可实现自定义添加模型。
 
