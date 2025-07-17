@@ -4,7 +4,9 @@
 
 > 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有免费使用额度，新手友好。
 
-> 通过在插件目录下的config.json文件中添加更多`model`名称，然后重启ComfyUI即可实现自定义添加模型。
+> 通过在插件目录下的config.json文件中添加`model`名称，然后重启ComfyUI即可添加以上平台的更多模型。
+
+> 新增OpenAI兼容Chat API和Image API节点，任何兼容OpenAI通用接口格式的文本、视觉和画图API节点均可使用。
 
 ## 📖 示例工作流
 
