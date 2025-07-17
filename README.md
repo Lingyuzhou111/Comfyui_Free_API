@@ -113,6 +113,7 @@ git clone https://github.com/Lingyuzhou111/Comfyui_Free_API.git
 
 在ComfyUI节点选择器中，所有节点都在`API`分类下：
 
+- `API/OpenAI` - OpenAI兼容格式相关节点
 - `API/Gemini` - Gemini相关节点
 - `API/GLM` - GLM相关节点  
 - `API/Qwen` - Qwen相关节点
