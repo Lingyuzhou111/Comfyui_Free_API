@@ -8,6 +8,8 @@
 
 > 新增OpenAI兼容Chat API和Image API节点，任何兼容OpenAI通用接口格式的文本、视觉和画图API节点均可使用。
 
+> 新增Qwen Image API节点和Qwen Video API节点，支持最新的Wan2.2文生图、Wan2.2文生视频、Wan2.2图生视频和Wan2.1首尾帧生视频。
+
 ## 📖 示例工作流
 
 #### LLM API工作流
