@@ -22,9 +22,6 @@
 #### GLM API文生图工作流
 <img width="1269" height="935" alt="GLM图片生成示例" src="https://github.com/user-attachments/assets/eb13e098-1a28-48a7-8a7a-b71d397a0f22" />
 
-#### Qwen API图像编辑工作流
-<img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
-
 #### Wan2.1图像编辑工作流
 <img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
 
