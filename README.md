@@ -19,11 +19,23 @@
 #### GLM API视频分析工作流
 <img width="1925" height="940" alt="GLM视频推理示例" src="https://github.com/user-attachments/assets/3fc4734f-e53c-4558-b019-6d0eee96aadf" />
 
+#### GLM API文生图工作流
+<img width="1269" height="935" alt="GLM图片生成示例" src="https://github.com/user-attachments/assets/eb13e098-1a28-48a7-8a7a-b71d397a0f22" />
+
 #### Qwen API图像编辑工作流
 <img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
 
-#### GLM API文生图工作流
-<img width="1269" height="935" alt="GLM图片生成示例" src="https://github.com/user-attachments/assets/eb13e098-1a28-48a7-8a7a-b71d397a0f22" />
+#### Wan2.1图像编辑工作流
+<img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
+
+#### Wan2.2文生图工作流
+<img width="1569" height="1150" alt="Wan2 2文生图示例-1" src="https://github.com/user-attachments/assets/6f3527f3-b388-4c11-88f5-6a5044ab2fbc" />
+
+#### Wan2.2文生视频工作流
+<img width="1101" height="1055" alt="Wan2 2文生视频示例" src="https://github.com/user-attachments/assets/139b4157-2d5a-4da5-8ec9-320a1ca2e029" />
+
+#### Wan2.2图生视频工作流
+<img width="1616" height="1059" alt="Wan2 2图生视频示例" src="https://github.com/user-attachments/assets/2c5edd80-8451-400b-8cdf-4e2645176623" />
 
 ## 🚀 功能特性 
 
