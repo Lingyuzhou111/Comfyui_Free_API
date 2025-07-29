@@ -10,6 +10,8 @@
 
 > 新增Qwen Image API节点和Qwen Video API节点，支持最新的Wan2.2文生图、Wan2.2文生视频、Wan2.2图生视频和Wan2.1首尾帧生视频。
 
+> GLM LLM API节点支持最新的glm-4.5、glm-4.5-air和glm-4.5-flash推理模型。
+
 ## 📖 示例工作流
 
 #### LLM API工作流
