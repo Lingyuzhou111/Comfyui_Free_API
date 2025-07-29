@@ -1,6 +1,6 @@
 # ComfyUI Free API 插件
 
-> 一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析、视频分析等功能。
+> 一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析、视频分析、视频生成等功能。
 
 > 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有免费使用额度，新手友好。
 
