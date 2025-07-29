@@ -37,6 +37,9 @@
 #### Wan2.2图生视频工作流
 <img width="1616" height="1059" alt="Wan2 2图生视频示例" src="https://github.com/user-attachments/assets/2c5edd80-8451-400b-8cdf-4e2645176623" />
 
+#### Wan2.1首尾帧生视频工作流
+<img width="1458" height="1168" alt="Wan2 1首尾帧生视频示例" src="https://github.com/user-attachments/assets/e1541ca4-c1a5-4617-a9b7-baee9eb51499" />
+
 ## 🚀 功能特性 
 
 ### 📝 文本对话 (LLM)
