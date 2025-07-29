@@ -38,7 +38,7 @@ class QwenVideoAPI:
                 config = json.load(f)
                 models = config.get('VIDEO', {}).get('qwen_video', {}).get('model', [])
         except:
-            models = ["wan2.2-t2v-plus", "wan2.2-i2v-plus", "wanx2.1-kf2v-plus"]
+            models = ["wan2.2-t2v-plus", "wan2.2-i2v-plus", "wanx2.1-i2v-turbo", "wanx2.1-kf2v-plus"]
         
         # 定义支持的分辨率选项
         resolution_options = ["480P", "720P", "1080P"]
@@ -49,7 +49,7 @@ class QwenVideoAPI:
         return {
             "required": {
                 "model": (models, {"default": models[0] if models else "wan2.2-t2v-plus", "tooltip": "选择视频生成模型"}),
-                "resolution": (resolution_options, {"default": "1080P", "tooltip": "视频分辨率档位"}),
+                "resolution": (resolution_options, {"default": "720P", "tooltip": "视频分辨率档位（wanx2.1-i2v-turbo仅支持480P和720P）"}),
                 "ratio": (ratio_options, {"default": "16:9", "tooltip": "视频宽高比"}),
                 "prompt": ("STRING", {"multiline": True, "default": "一只小猫在月光下奔跑", "tooltip": "文本提示词，描述想要生成的视频内容"}),
                 "prompt_extend": ("BOOLEAN", {"default": True, "tooltip": "是否开启智能改写，对短提示词效果提升明显"}),
@@ -104,19 +104,19 @@ class QwenVideoAPI:
         # 根据模型选择API URL
         if model == "wan2.2-t2v-plus":
             # 文生视频
-            base_url = self.config.get('wan2.2_base_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis')
+            base_url = self.config.get('base_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis')
             video_type = "text_to_video"
-        elif model == "wan2.2-i2v-plus":
-            # 图生视频
-            base_url = self.config.get('wan2.2_base_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis')
+        elif model == "wan2.2-i2v-plus" or model == "wanx2.1-i2v-turbo":
+            # 图生视频（支持两个模型）
+            base_url = self.config.get('base_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis')
             video_type = "image_to_video"
         elif model == "wanx2.1-kf2v-plus":
             # 首尾帧生视频
-            base_url = self.config.get('wan2.1_base_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image2video/video-synthesis')
+            base_url = self.config.get('kf2v_base_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image2video/video-synthesis')
             video_type = "keyframe_to_video"
         else:
             logger.error(f"不支持的模型: {model}")
-            return (None, "不支持的模型", f"错误: 不支持的模型 '{model}'，支持的模型: wan2.2-t2v-plus, wan2.2-i2v-plus, wanx2.1-kf2v-plus")
+            return (None, "不支持的模型", f"错误: 不支持的模型 '{model}'，支持的模型: wan2.2-t2v-plus, wan2.2-i2v-plus, wanx2.1-i2v-turbo, wanx2.1-kf2v-plus")
         
         # 转换分辨率和宽高比为具体尺寸
         size = self._get_video_size(resolution, ratio, model)
@@ -227,6 +227,13 @@ class QwenVideoAPI:
         if model == "wanx2.1-kf2v-plus":
             logger.info("首尾帧生视频模型使用720P分辨率")
             return "1280*720"  # 固定720P分辨率
+        
+        # wanx2.1-i2v-turbo模型仅支持480P和720P
+        if model == "wanx2.1-i2v-turbo":
+            if resolution == "1080P":
+                logger.error("wanx2.1-i2v-turbo模型不支持1080P分辨率，仅支持480P和720P")
+                return None
+            logger.info(f"wanx2.1-i2v-turbo模型使用{resolution}分辨率")
         
         # 480P档位的分辨率映射
         if resolution == "480P":
