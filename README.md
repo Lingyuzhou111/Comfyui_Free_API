@@ -89,6 +89,9 @@ git clone https://github.com/Lingyuzhou111/Comfyui_Free_API.git
     },
     "qwen_llm": {
       "api_key": "你的Qwen API密钥"
+    },
+    "siliconflow_llm": {
+      "api_key": "你的Siliconflow API密钥"
     }
   }
 }
