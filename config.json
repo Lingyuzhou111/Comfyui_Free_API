@@ -101,7 +101,7 @@
         },
     "glm_image": {
         "base_url": "https://open.bigmodel.cn/api/paas/v4/images/generations",
-        "api_key": ""your_glm_api_key",
+        "api_key": "your_glm_api_key",
         "model": ["cogview-4-250304", "cogview-4", "cogview-3-flash"]
         },    
     "qwen_image": {
