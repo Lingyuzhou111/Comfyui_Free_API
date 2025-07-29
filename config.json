@@ -125,8 +125,8 @@
         "model": ["cogvideox", "cogvideox-2", "cogvideox-3"]
         },    
     "qwen_video": {
-        "wan2.2_base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis",
-        "wan2.1_base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2video/video-synthesis",
+        "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis",
+        "kf2v_base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2video/video-synthesis",
         "api_key": "your_qwen_api_key",
         "model": ["wan2.2-t2v-plus", "wan2.2-i2v-plus", "wanx2.1-kf2v-plus", "wanx2.1-i2v-turbo"]
         }
