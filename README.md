@@ -12,6 +12,8 @@
 
 > GLM LLM API节点支持最新的glm-4.5、glm-4.5-air和glm-4.5-flash推理模型。
 
+> 新增支持硅基流动、火山方舟、魔搭等API平台的图像生成，支持调用第三方gpt-image-1的API进行多图编辑
+
 ## 📖 示例工作流
 
 #### LLM API工作流
@@ -40,6 +42,10 @@
 
 #### Wan2.1首尾帧生视频工作流
 <img width="1458" height="1168" alt="Wan2 1首尾帧生视频示例" src="https://github.com/user-attachments/assets/e1541ca4-c1a5-4617-a9b7-baee9eb51499" />
+
+#### 新增支持硅基流动、火山方舟、魔搭等API平台的图像生成和调用第三方gpt-image-1的API进行多图编辑
+<img width="1650" height="1149" alt="OpenAI兼容格式文生图-1" src="https://github.com/user-attachments/assets/65d81826-91a5-42c1-bf7e-5febed60d51f" />
+<img width="1995" height="718" alt="OpenAI兼容格式文生图-2" src="https://github.com/user-attachments/assets/c73ce3d3-fcd1-4e35-a4d8-53e5f1537a77" />
 
 ## 🚀 功能特性 
 
@@ -171,3 +177,4 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
