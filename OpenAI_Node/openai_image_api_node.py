@@ -25,7 +25,7 @@ class OpenAIImageAPI:
                 "model": ("STRING", {"default": "dall-e-3", "multiline": False}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
                 "user_prompt": ("STRING", {"multiline": True, "default": "生成一只可爱的小猫"}),
-                "size": (["1024x1024", "768x1344", "864x1152", "1344x768", "1152x864", "1440x720", "720x1440", "1024x1536", "1536x1024"], {"default": "1024x1024"}),
+                "size": (["1024x1024", "768x1344", "1344x768", "864x1152", "1152x864", "1328x1328", "928x1664", "1664x928", "1104x1472", "1472x1104", "1024x1536", "1536x1024"], {"default": "1024x1024"}),
                 "num_images": ("INT", {"default": 1, "min": 1, "max": 4, "step": 1}),
             },
             "optional": {
@@ -108,7 +108,9 @@ class OpenAIImageAPI:
                     "model": model,
                     "prompt": user_prompt,
                     "n": num_images,
-                    "size": size
+                    "size": size,
+                    'steps': 30,
+                    'guidance': 4.0
                 }
             elif is_siliconflow:
                 # SiliconFlow平台API格式
@@ -142,6 +144,9 @@ class OpenAIImageAPI:
            
             # 发送请求
             headers = self._build_headers(api_key)
+            # 魔搭平台建议使用异步模式，以适配如 Qwen/Qwen-Image 等需要 task_id 轮询的模型
+            if is_modelscope:
+                headers["X-ModelScope-Async-Mode"] = "true"
             print(f"正在请求图像生成API: {api_url}")
             print(f"请求参数: model={model}, size={size}, n={num_images}")
             if is_modelscope:
@@ -154,15 +159,57 @@ class OpenAIImageAPI:
                 print(f"火山方舟参数: guidance_scale={3}, watermark=False")
             else:
                 print(f"API类型: OpenAI兼容")
-            print(f"请求头: {headers}")
+            #print(f"请求头: {headers}")
             print(f"请求载荷: {self._safe_json_dumps(payload)}")
             
             resp = requests.post(api_url, headers=headers, json=payload, timeout=300)
             
-            # 不立即抛出异常，让_parse_image_response处理所有响应
+            # 不立即抛出异常，让后续逻辑处理响应
             print(f"响应状态码: {resp.status_code}")
-            print(f"响应头: {dict(resp.headers)}")
-            
+            #print(f"响应头: {dict(resp.headers)}")
+
+            # 魔搭平台部分模型（如 Qwen/Qwen-Image）会返回 task_id，需要轮询任务结果
+            if is_modelscope:
+                try:
+                    data = resp.json()
+                    print(f"魔搭初始响应: {self._safe_json_dumps(data)}")
+                except Exception:
+                    data = None
+
+                # 400 时，尝试使用最小载荷进行一次重试（仅 model + prompt）
+                if resp.status_code == 400:
+                    try:
+                        minimal_payload = {
+                            "model": model,
+                            "prompt": user_prompt
+                        }
+                        print("检测到 400，使用最小参数重试魔搭提交...")
+                        print(f"最小载荷: {self._safe_json_dumps(minimal_payload)}")
+                        resp_retry = requests.post(api_url, headers=headers, json=minimal_payload, timeout=300)
+                        print(f"重试响应状态码: {resp_retry.status_code}")
+                        print(f"重试响应头: {dict(resp_retry.headers)}")
+                        try:
+                            data_retry = resp_retry.json()
+                            print(f"重试响应JSON: {self._safe_json_dumps(data_retry)}")
+                        except Exception:
+                            data_retry = None
+                        # 若拿到 task_id，进入轮询
+                        if data_retry and isinstance(data_retry, dict) and data_retry.get("task_id"):
+                            return self._poll_modelscope_task(base_url, data_retry.get("task_id"), api_key)
+                        # 否则走通用解析
+                        return self._parse_image_response(resp_retry)
+                    except Exception as _:
+                        # 重试过程失败则继续走通用处理
+                        pass
+
+                # 首次响应就包含 task_id，直接轮询
+                if data and isinstance(data, dict) and data.get("task_id"):
+                    return self._poll_modelscope_task(base_url, data.get("task_id"), api_key)
+
+                # 否则走通用解析（支持部分模型直接同步返回 images）
+                return self._parse_image_response(resp)
+
+            # 非魔搭平台直接按通用解析
             return self._parse_image_response(resp)
                 
         except Exception as e:
@@ -592,6 +639,87 @@ class OpenAIImageAPI:
             import torch
             empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
         return (empty_image, f"轮询超时，请检查后台任务状态")
+
+    def _poll_modelscope_task(self, base_url, task_id, api_key):
+        """
+        轮询魔搭（ModelScope）异步任务，直到成功或超时。
+        成功后下载图片并转换为 ComfyUI 格式。
+        """
+        import time
+        try:
+            tasks_url = f"{base_url.rstrip('/')}/tasks/{task_id}"
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "X-ModelScope-Task-Type": "image_generation"
+            }
+
+            max_attempts = 60  # 最长约 5 分钟（60*5s）
+            poll_interval = 5
+
+            print(f"开始轮询魔搭任务: task_id={task_id}, url={tasks_url}")
+            for attempt in range(max_attempts):
+                print(f"魔搭轮询尝试 {attempt + 1}/{max_attempts}")
+                resp = requests.get(tasks_url, headers=headers, timeout=60)
+                if resp.status_code != 200:
+                    print(f"任务查询失败: {resp.status_code}, {resp.text[:200]}")
+                    time.sleep(poll_interval)
+                    continue
+
+                data = resp.json()
+                #print(f"任务查询返回: {self._safe_json_dumps(data)}")
+                status = data.get("task_status") or data.get("status")
+
+                if status == "SUCCEED":
+                    output_images = data.get("output_images") or []
+                    if not output_images:
+                        # 兼容可能的字段
+                        images = data.get("images") or []
+                        if images and isinstance(images[0], dict):
+                            image_url = images[0].get("url")
+                        else:
+                            image_url = images[0] if images else None
+                    else:
+                        image_url = output_images[0]
+
+                    if not image_url:
+                        raise Exception("任务成功但未返回图片URL")
+
+                    print(f"任务完成，下载图片: {image_url}")
+                    img_resp = requests.get(image_url, timeout=60)
+                    img_resp.raise_for_status()
+                    pil_image = Image.open(BytesIO(img_resp.content))
+                    if pil_image.mode != "RGB":
+                        pil_image = pil_image.convert("RGB")
+
+                    comfyui_image = self._pil_to_comfyui(pil_image)
+                    if comfyui_image is None:
+                        import torch
+                        comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+
+                    # 构造生成信息，至少包含 image_url
+                    gen_info = self._format_generation_info({"images": [{"url": image_url}]}, image_url)
+                    return (comfyui_image, gen_info)
+
+                if status == "FAILED":
+                    raise Exception(f"任务失败: {self._safe_json_dumps(data)}")
+
+                # 继续等待
+                time.sleep(poll_interval)
+
+            # 超时
+            empty_image = self._create_empty_image()
+            if empty_image is None:
+                import torch
+                empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+            return (empty_image, "魔搭任务轮询超时")
+
+        except Exception as e:
+            print(f"魔搭任务轮询异常: {e}")
+            empty_image = self._create_empty_image()
+            if empty_image is None:
+                import torch
+                empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+            return (empty_image, f"魔搭任务轮询失败: {e}")
 
     def _convert_to_pil(self, image):
         """
