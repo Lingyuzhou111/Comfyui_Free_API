@@ -147,32 +147,32 @@ class OpenAIImageAPI:
             # 魔搭平台建议使用异步模式，以适配如 Qwen/Qwen-Image 等需要 task_id 轮询的模型
             if is_modelscope:
                 headers["X-ModelScope-Async-Mode"] = "true"
-            print(f"正在请求图像生成API: {api_url}")
-            print(f"请求参数: model={model}, size={size}, n={num_images}")
+            print(f"[OpenAIImageAPI] 正在请求图像生成API: {api_url}")
+            print(f"[OpenAIImageAPI] 请求参数: model={model}, size={size}, n={num_images}")
             if is_modelscope:
-                print(f"API类型: 魔搭平台")
+                print(f"[OpenAIImageAPI] API类型: 魔搭平台")
             elif is_siliconflow:
-                print(f"API类型: SiliconFlow平台")
-                print(f"SiliconFlow参数: num_inference_steps={20}, guidance_scale={7.5}")
+                print(f"[OpenAIImageAPI] API类型: SiliconFlow平台")
+                print(f"[OpenAIImageAPI] SiliconFlow参数: num_inference_steps={20}, guidance_scale={7.5}")
             elif is_volcengine:
-                print(f"API类型: 火山方舟平台")
-                print(f"火山方舟参数: guidance_scale={3}, watermark=False")
+                print(f"[OpenAIImageAPI] API类型: 火山方舟平台")
+                print(f"[OpenAIImageAPI] 火山方舟参数: guidance_scale={3}, watermark=False")
             else:
-                print(f"API类型: OpenAI兼容")
-            #print(f"请求头: {headers}")
-            print(f"请求载荷: {self._safe_json_dumps(payload)}")
+                print(f"[OpenAIImageAPI] API类型: OpenAI兼容")
+            #print(f"[OpenAIImageAPI] 请求头: {headers}")
+            print(f"[OpenAIImageAPI] 请求载荷: {self._safe_json_dumps(payload)}")
             
             resp = requests.post(api_url, headers=headers, json=payload, timeout=300)
             
             # 不立即抛出异常，让后续逻辑处理响应
-            print(f"响应状态码: {resp.status_code}")
-            #print(f"响应头: {dict(resp.headers)}")
+            print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
+            #print(f"[OpenAIImageAPI] 响应头: {dict(resp.headers)}")
 
             # 魔搭平台部分模型（如 Qwen/Qwen-Image）会返回 task_id，需要轮询任务结果
             if is_modelscope:
                 try:
                     data = resp.json()
-                    print(f"魔搭初始响应: {self._safe_json_dumps(data)}")
+                    print(f"[OpenAIImageAPI] 魔搭初始响应: {self._safe_json_dumps(data)}")
                 except Exception:
                     data = None
 
@@ -184,13 +184,13 @@ class OpenAIImageAPI:
                             "prompt": user_prompt
                         }
                         print("检测到 400，使用最小参数重试魔搭提交...")
-                        print(f"最小载荷: {self._safe_json_dumps(minimal_payload)}")
+                        print(f"[OpenAIImageAPI] 最小载荷: {self._safe_json_dumps(minimal_payload)}")
                         resp_retry = requests.post(api_url, headers=headers, json=minimal_payload, timeout=300)
-                        print(f"重试响应状态码: {resp_retry.status_code}")
-                        print(f"重试响应头: {dict(resp_retry.headers)}")
+                        print(f"[OpenAIImageAPI] 重试响应状态码: {resp_retry.status_code}")
+                        print(f"[OpenAIImageAPI] 重试响应头: {dict(resp_retry.headers)}")
                         try:
                             data_retry = resp_retry.json()
-                            print(f"重试响应JSON: {self._safe_json_dumps(data_retry)}")
+                            print(f"[OpenAIImageAPI] 重试响应JSON: {self._safe_json_dumps(data_retry)}")
                         except Exception:
                             data_retry = None
                         # 若拿到 task_id，进入轮询
@@ -250,9 +250,9 @@ class OpenAIImageAPI:
             headers = self._build_headers(api_key)
             api_url = f"{base_url.rstrip('/')}/images/generations"
             
-            print(f"正在请求火山方舟图像编辑API: {api_url}")
-            print(f"请求参数: model={model}, 输入图像数量={len(input_images)}")
-            print(f"请求头: {headers}")
+            print(f"[OpenAIImageAPI] 正在请求火山方舟图像编辑API: {api_url}")
+            print(f"[OpenAIImageAPI] 请求参数: model={model}, 输入图像数量={len(input_images)}")
+            print(f"[OpenAIImageAPI] 请求头: {headers}")
             
             # 处理第一张输入图像（火山方舟只支持单张图像）
             if input_images:
@@ -266,7 +266,7 @@ class OpenAIImageAPI:
                     import base64
                     image_base64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
                     
-                    print(f"图像处理成功: 尺寸={pil_image.size}, 大小={len(img_buffer.getvalue())} bytes")
+                    print(f"[OpenAIImageAPI] 图像处理成功: 尺寸={pil_image.size}, 大小={len(img_buffer.getvalue())} bytes")
                     
                     # 构造火山方舟图生图请求
                     payload = {
@@ -279,12 +279,12 @@ class OpenAIImageAPI:
                         "watermark": False # 固定值
                     }
                     
-                    print(f"请求载荷: {self._safe_json_dumps(payload)}")
+                    print(f"[OpenAIImageAPI] 请求载荷: {self._safe_json_dumps(payload)}")
                     
                     resp = requests.post(api_url, headers=headers, json=payload, timeout=300)
                     
-                    print(f"响应状态码: {resp.status_code}")
-                    print(f"响应头: {dict(resp.headers)}")
+                    print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
+                    print(f"[OpenAIImageAPI] 响应头: {dict(resp.headers)}")
                     
                     return self._parse_image_response(resp)
                     
@@ -319,9 +319,9 @@ class OpenAIImageAPI:
             headers.pop("Content-Type", None)
             
             api_url = f"{base_url.rstrip('/')}/images/edits"
-            print(f"正在请求图像编辑API: {api_url}")
-            print(f"请求参数: model={model}, 输入图像数量={len(input_images)}")
-            print(f"请求头: {headers}")
+            print(f"[OpenAIImageAPI] 正在请求图像编辑API: {api_url}")
+            print(f"[OpenAIImageAPI] 请求参数: model={model}, 输入图像数量={len(input_images)}")
+            print(f"[OpenAIImageAPI] 请求头: {headers}")
             
             # 准备multipart数据
             files = []
@@ -333,8 +333,8 @@ class OpenAIImageAPI:
                 "quality": "auto"
             }
             
-            print(f"请求数据: {self._safe_json_dumps(data)}")
-            print(f"图像文件数量: {len(files)}")
+            print(f"[OpenAIImageAPI] 请求数据: {self._safe_json_dumps(data)}")
+            print(f"[OpenAIImageAPI] 图像文件数量: {len(files)}")
 
             
             # 添加图像文件
@@ -348,7 +348,7 @@ class OpenAIImageAPI:
                     
                     # OpenAI图生图支持多张输入图像，添加所有图像
                     files.append(("image", (f"image_{i+1}.png", img_buffer.getvalue(), "image/png")))
-                    print(f"图像{i+1}处理成功: 尺寸={pil_image.size}, 大小={len(img_buffer.getvalue())} bytes")
+                    print(f"[OpenAIImageAPI] 图像{i+1}处理成功: 尺寸={pil_image.size}, 大小={len(img_buffer.getvalue())} bytes")
                 except Exception as e:
                     empty_image = self._create_empty_image()
                     if empty_image is None:
@@ -360,8 +360,8 @@ class OpenAIImageAPI:
             resp = requests.post(api_url, headers=headers, data=data, files=files, timeout=300)
             
             # 不立即抛出异常，让_parse_image_response处理所有响应
-            print(f"响应状态码: {resp.status_code}")
-            print(f"响应头: {dict(resp.headers)}")
+            print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
+            print(f"[OpenAIImageAPI] 响应头: {dict(resp.headers)}")
             
             return self._parse_image_response(resp)
                 
@@ -380,9 +380,9 @@ class OpenAIImageAPI:
             # 检查HTTP状态码
             if resp.status_code != 200:
                 error_text = resp.text
-                print(f"API返回错误状态码: {resp.status_code}")
-                print(f"错误响应内容: {error_text}")
-                print(f"响应头: {dict(resp.headers)}")
+                print(f"[OpenAIImageAPI] API返回错误状态码: {resp.status_code}")
+                print(f"[OpenAIImageAPI] 错误响应内容: {error_text}")
+                print(f"[OpenAIImageAPI] 响应头: {dict(resp.headers)}")
                 # 返回一个空的图像张量而不是None，避免ComfyUI错误
                 empty_image = self._create_empty_image()
                 if empty_image is None:
@@ -403,16 +403,16 @@ class OpenAIImageAPI:
             try:
                 data = resp.json()
             except json.JSONDecodeError as json_error:
-                print(f"JSON解析失败: {json_error}")
-                print(f"响应内容: {resp.text[:500]}...")
-                print(f"响应类型: {resp.headers.get('content-type', 'unknown')}")
+                print(f"[OpenAIImageAPI] JSON解析失败: {json_error}")
+                print(f"[OpenAIImageAPI] 响应内容: {resp.text[:500]}...")
+                print(f"[OpenAIImageAPI] 响应类型: {resp.headers.get('content-type', 'unknown')}")
                 empty_image = self._create_empty_image()
                 if empty_image is None:
                     import torch
                     empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
                 return (empty_image, f"API响应格式错误: {resp.text[:200]}")
             
-            print(f"API原始响应: {self._safe_json_dumps(data)}")  # 调试输出，截断长base64字符串
+            print(f"[OpenAIImageAPI] API原始响应: {self._safe_json_dumps(data)}")  # 调试输出，截断长base64字符串
             
             # 检查是否有错误信息
             if "error" in data:
@@ -433,29 +433,29 @@ class OpenAIImageAPI:
             if "data" in data and data["data"]:
                 # 标准图像生成API格式
                 image_data = data["data"][0]  # 取第一张图像
-                print(f"找到图像数据: {list(image_data.keys())}")
+                print(f"[OpenAIImageAPI] 找到图像数据: {list(image_data.keys())}")
                 
                 if "b64_json" in image_data:
                     # 处理base64格式（优先，因为OpenAI兼容API默认返回此格式）
                     b64_data = image_data["b64_json"]
-                    print(f"处理base64图像数据，长度: {len(b64_data)}, 预览: {self._truncate_base64_log(b64_data)}")
+                    print(f"[OpenAIImageAPI] 处理base64图像数据，长度: {len(b64_data)}, 预览: {self._truncate_base64_log(b64_data)}")
                     # 处理可能包含数据URI前缀的base64数据
                     if b64_data.startswith('data:image/'):
                         # 移除数据URI前缀，只保留base64数据部分
                         b64_data = b64_data.split(',', 1)[1]
                     image_bytes = base64.b64decode(b64_data)
                     pil_image = Image.open(BytesIO(image_bytes))
-                    print(f"base64图像加载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
+                    print(f"[OpenAIImageAPI] base64图像加载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
                 elif "url" in image_data:
                     # 处理URL格式
                     image_url = image_data["url"]
-                    print(f"下载图像: {image_url}")
+                    print(f"[OpenAIImageAPI] 下载图像: {image_url}")
                     img_resp = requests.get(image_url, timeout=30)
                     img_resp.raise_for_status()
                     pil_image = Image.open(BytesIO(img_resp.content))
-                    print(f"URL图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}, 大小={len(img_resp.content)} bytes")
+                    print(f"[OpenAIImageAPI] URL图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}, 大小={len(img_resp.content)} bytes")
                 else:
-                    print(f"未找到支持的图像格式，可用字段: {list(image_data.keys())}")
+                    print(f"[OpenAIImageAPI] 未找到支持的图像格式，可用字段: {list(image_data.keys())}")
                     empty_image = self._create_empty_image()
                     if empty_image is None:
                         import torch
@@ -464,18 +464,18 @@ class OpenAIImageAPI:
             elif "images" in data and data["images"]:
                 # 魔搭平台API格式
                 image_data = data["images"][0]  # 取第一张图像
-                print(f"找到魔搭平台图像数据: {list(image_data.keys())}")
+                print(f"[OpenAIImageAPI] 找到魔搭平台图像数据: {list(image_data.keys())}")
                 
                 if "url" in image_data:
                     # 处理URL格式
                     image_url = image_data["url"]
-                    print(f"下载魔搭平台图像: {image_url}")
+                    print(f"[OpenAIImageAPI] 下载魔搭平台图像: {image_url}")
                     img_resp = requests.get(image_url, timeout=30)
                     img_resp.raise_for_status()
                     pil_image = Image.open(BytesIO(img_resp.content))
-                    print(f"魔搭平台图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}, 大小={len(img_resp.content)} bytes")
+                    print(f"[OpenAIImageAPI] 魔搭平台图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}, 大小={len(img_resp.content)} bytes")
                 else:
-                    print(f"未找到支持的魔搭平台图像格式，可用字段: {list(image_data.keys())}")
+                    print(f"[OpenAIImageAPI] 未找到支持的魔搭平台图像格式，可用字段: {list(image_data.keys())}")
                     empty_image = self._create_empty_image()
                     if empty_image is None:
                         import torch
@@ -484,25 +484,25 @@ class OpenAIImageAPI:
             elif "data" in data and isinstance(data["data"], list) and len(data["data"]) > 0:
                 # SiliconFlow平台API格式 - 可能直接返回图像数据
                 image_data = data["data"][0]  # 取第一张图像
-                print(f"找到SiliconFlow图像数据: {list(image_data.keys())}")
+                print(f"[OpenAIImageAPI] 找到SiliconFlow图像数据: {list(image_data.keys())}")
                 
                 if "url" in image_data:
                     # 处理URL格式
                     image_url = image_data["url"]
-                    print(f"下载SiliconFlow图像: {image_url}")
+                    print(f"[OpenAIImageAPI] 下载SiliconFlow图像: {image_url}")
                     img_resp = requests.get(image_url, timeout=30)
                     img_resp.raise_for_status()
                     pil_image = Image.open(BytesIO(img_resp.content))
-                    print(f"SiliconFlow图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}, 大小={len(img_resp.content)} bytes")
+                    print(f"[OpenAIImageAPI] SiliconFlow图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}, 大小={len(img_resp.content)} bytes")
                 elif "b64_json" in image_data:
                     # 处理base64格式
                     b64_data = image_data["b64_json"]
-                    print(f"处理SiliconFlow base64图像数据，长度: {len(b64_data)}, 预览: {self._truncate_base64_log(b64_data)}")
+                    print(f"[OpenAIImageAPI] 处理SiliconFlow base64图像数据，长度: {len(b64_data)}, 预览: {self._truncate_base64_log(b64_data)}")
                     image_bytes = base64.b64decode(b64_data)
                     pil_image = Image.open(BytesIO(image_bytes))
-                    print(f"SiliconFlow base64图像加载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
+                    print(f"[OpenAIImageAPI] SiliconFlow base64图像加载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
                 else:
-                    print(f"未找到支持的SiliconFlow图像格式，可用字段: {list(image_data.keys())}")
+                    print(f"[OpenAIImageAPI] 未找到支持的SiliconFlow图像格式，可用字段: {list(image_data.keys())}")
                     empty_image = self._create_empty_image()
                     if empty_image is None:
                         import torch
@@ -515,8 +515,8 @@ class OpenAIImageAPI:
                 content = message.get("content", "")
                 finish_reason = choice.get("finish_reason", "")
                 
-                print(f"聊天完成格式响应: finish_reason={finish_reason}")
-                print(f"响应内容: {content[:200]}...")
+                print(f"[OpenAIImageAPI] 聊天完成格式响应: finish_reason={finish_reason}")
+                print(f"[OpenAIImageAPI] 响应内容: {content[:200]}...")
                 
                 # 检查是否是处理中的状态
                 if finish_reason == "processing" or "正在准备生成任务" in content:
@@ -532,7 +532,7 @@ class OpenAIImageAPI:
                     empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
                 return (empty_image, f"API返回聊天格式，需要进一步处理: {content[:100]}...")
             else:
-                print(f"未找到支持的响应格式，可用字段: {list(data.keys())}")
+                print(f"[OpenAIImageAPI] 未找到支持的响应格式，可用字段: {list(data.keys())}")
                 empty_image = self._create_empty_image()
                 if empty_image is None:
                     import torch
@@ -541,27 +541,27 @@ class OpenAIImageAPI:
             
             # 如果到达这里，说明找到了图像数据，进行后续处理
             # 转换为ComfyUI格式
-            print(f"开始转换为ComfyUI格式...")
+            print(f"[OpenAIImageAPI] 开始转换为ComfyUI格式...")
             comfyui_image = self._pil_to_comfyui(pil_image)
             if comfyui_image is None:
-                print(f"ComfyUI格式转换失败，使用空图像")
+                print(f"[OpenAIImageAPI] ComfyUI格式转换失败，使用空图像")
                 # 如果转换失败，使用空图像
                 import torch
                 comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
             else:
-                print(f"ComfyUI格式转换成功: 形状={comfyui_image.shape}, 类型={comfyui_image.dtype}")
+                print(f"[OpenAIImageAPI] ComfyUI格式转换成功: 形状={comfyui_image.shape}, 类型={comfyui_image.dtype}")
             
             # 格式化生成信息
             generation_info = self._format_generation_info(data, image_url)
-            print(f"生成信息: {generation_info}")
+            print(f"[OpenAIImageAPI] 生成信息: {generation_info}")
             
             return (comfyui_image, generation_info)
                 
         except Exception as e:
-            print(f"响应解析异常: {e}")
-            print(f"响应状态码: {resp.status_code}")
-            print(f"响应头: {dict(resp.headers)}")
-            print(f"响应内容: {resp.text[:500]}...")
+            print(f"[OpenAIImageAPI] 响应解析异常: {e}")
+            print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
+            print(f"[OpenAIImageAPI] 响应头: {dict(resp.headers)}")
+            print(f"[OpenAIImageAPI] 响应内容: {resp.text[:500]}...")
             empty_image = self._create_empty_image()
             if empty_image is None:
                 import torch
@@ -583,14 +583,14 @@ class OpenAIImageAPI:
                 empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
             return (empty_image, "无法获取请求ID进行轮询")
         
-        print(f"开始轮询等待结果，请求ID: {request_id}")
+        print(f"[OpenAIImageAPI] 开始轮询等待结果，请求ID: {request_id}")
         
         # 轮询参数
         max_attempts = 30  # 最大轮询次数
         poll_interval = 10  # 轮询间隔（秒）
         
         for attempt in range(max_attempts):
-            print(f"轮询尝试 {attempt + 1}/{max_attempts}")
+            print(f"[OpenAIImageAPI] 轮询尝试 {attempt + 1}/{max_attempts}")
             
             try:
                 # 构造轮询请求
@@ -608,7 +608,7 @@ class OpenAIImageAPI:
                 
                 if poll_resp.status_code == 200:
                     poll_data = poll_resp.json()
-                    print(f"轮询响应: {poll_data}")
+                    print(f"[OpenAIImageAPI] 轮询响应: {poll_data}")
                     
                     # 检查是否完成
                     if "choices" in poll_data and poll_data["choices"]:
@@ -617,20 +617,20 @@ class OpenAIImageAPI:
                         
                         if finish_reason != "processing":
                             # 任务完成，解析结果
-                            print(f"任务完成，finish_reason: {finish_reason}")
+                            print(f"[OpenAIImageAPI] 任务完成，finish_reason: {finish_reason}")
                             return self._parse_image_response(poll_resp)
                         else:
-                            print(f"任务仍在处理中，等待 {poll_interval} 秒...")
+                            print(f"[OpenAIImageAPI] 任务仍在处理中，等待 {poll_interval} 秒...")
                             time.sleep(poll_interval)
                     else:
-                        print(f"轮询响应格式异常: {poll_data}")
+                        print(f"[OpenAIImageAPI] 轮询响应格式异常: {poll_data}")
                         time.sleep(poll_interval)
                 else:
-                    print(f"轮询请求失败，状态码: {poll_resp.status_code}")
+                    print(f"[OpenAIImageAPI] 轮询请求失败，状态码: {poll_resp.status_code}")
                     time.sleep(poll_interval)
                     
             except Exception as e:
-                print(f"轮询异常: {e}")
+                print(f"[OpenAIImageAPI] 轮询异常: {e}")
                 time.sleep(poll_interval)
         
         # 超时
@@ -656,17 +656,17 @@ class OpenAIImageAPI:
             max_attempts = 60  # 最长约 5 分钟（60*5s）
             poll_interval = 5
 
-            print(f"开始轮询魔搭任务: task_id={task_id}, url={tasks_url}")
+            print(f"[OpenAIImageAPI] 开始轮询魔搭任务: task_id={task_id}, url={tasks_url}")
             for attempt in range(max_attempts):
-                print(f"魔搭轮询尝试 {attempt + 1}/{max_attempts}")
+                print(f"[OpenAIImageAPI] 魔搭轮询尝试 {attempt + 1}/{max_attempts}")
                 resp = requests.get(tasks_url, headers=headers, timeout=60)
                 if resp.status_code != 200:
-                    print(f"任务查询失败: {resp.status_code}, {resp.text[:200]}")
+                    print(f"[OpenAIImageAPI] 任务查询失败: {resp.status_code}, {resp.text[:200]}")
                     time.sleep(poll_interval)
                     continue
 
                 data = resp.json()
-                #print(f"任务查询返回: {self._safe_json_dumps(data)}")
+                #print(f"[OpenAIImageAPI] 任务查询返回: {self._safe_json_dumps(data)}")
                 status = data.get("task_status") or data.get("status")
 
                 if status == "SUCCEED":
@@ -684,7 +684,7 @@ class OpenAIImageAPI:
                     if not image_url:
                         raise Exception("任务成功但未返回图片URL")
 
-                    print(f"任务完成，下载图片: {image_url}")
+                    print(f"[OpenAIImageAPI] 任务完成，下载图片: {image_url}")
                     img_resp = requests.get(image_url, timeout=60)
                     img_resp.raise_for_status()
                     pil_image = Image.open(BytesIO(img_resp.content))
@@ -714,7 +714,7 @@ class OpenAIImageAPI:
             return (empty_image, "魔搭任务轮询超时")
 
         except Exception as e:
-            print(f"魔搭任务轮询异常: {e}")
+            print(f"[OpenAIImageAPI] 魔搭任务轮询异常: {e}")
             empty_image = self._create_empty_image()
             if empty_image is None:
                 import torch
@@ -726,51 +726,51 @@ class OpenAIImageAPI:
         将ComfyUI的IMAGE转换为PIL Image
         """
         try:
-            print(f"开始转换图像，输入类型: {type(image)}")
+            print(f"[OpenAIImageAPI] 开始转换图像，输入类型: {type(image)}")
             
             # ComfyUI的IMAGE是torch.Tensor，需要转换为PIL Image
             if hasattr(image, 'cpu'):  # 是torch.Tensor
-                print(f"检测到torch.Tensor，形状: {image.shape}, 类型: {image.dtype}")
+                print(f"[OpenAIImageAPI] 检测到torch.Tensor，形状: {image.shape}, 类型: {image.dtype}")
                 # 转换为numpy数组，然后转为PIL Image
                 import torch
                 if image.dim() == 4:  # batch维度，取第一张
                     image = image[0]
-                    print(f"取batch第一张，新形状: {image.shape}")
+                    print(f"[OpenAIImageAPI] 取batch第一张，新形状: {image.shape}")
                 # 转换为numpy并调整通道顺序 (C,H,W) -> (H,W,C)
                 image_np = image.cpu().numpy()
-                print(f"转换为numpy数组，形状: {image_np.shape}, 类型: {image_np.dtype}")
+                print(f"[OpenAIImageAPI] 转换为numpy数组，形状: {image_np.shape}, 类型: {image_np.dtype}")
                 if image_np.shape[0] == 3:  # 如果是(C,H,W)格式
                     image_np = image_np.transpose(1, 2, 0)
-                    print(f"调整通道顺序后，形状: {image_np.shape}")
+                    print(f"[OpenAIImageAPI] 调整通道顺序后，形状: {image_np.shape}")
                 # 确保值在0-255范围内
                 image_np = (image_np * 255).clip(0, 255).astype('uint8')
-                print(f"归一化到0-255，值范围: {image_np.min()}-{image_np.max()}")
+                print(f"[OpenAIImageAPI] 归一化到0-255，值范围: {image_np.min()}-{image_np.max()}")
                 img = Image.fromarray(image_np)
-                print(f"PIL图像创建成功: 尺寸={img.size}, 模式={img.mode}")
+                print(f"[OpenAIImageAPI] PIL图像创建成功: 尺寸={img.size}, 模式={img.mode}")
             elif hasattr(image, 'save'):  # 已经是PIL Image
-                print(f"检测到PIL Image，尺寸={image.size}, 模式={image.mode}")
+                print(f"[OpenAIImageAPI] 检测到PIL Image，尺寸={image.size}, 模式={image.mode}")
                 img = image
             else:
                 # 如果是numpy数组，直接转换
                 import numpy as np
                 if isinstance(image, np.ndarray):
-                    print(f"检测到numpy数组，形状: {image.shape}, 类型: {image.dtype}")
+                    print(f"[OpenAIImageAPI] 检测到numpy数组，形状: {image.shape}, 类型: {image.dtype}")
                     if image.shape[0] == 3:  # 如果是(C,H,W)格式
                         image = image.transpose(1, 2, 0)
-                        print(f"调整通道顺序后，形状: {image.shape}")
+                        print(f"[OpenAIImageAPI] 调整通道顺序后，形状: {image.shape}")
                     # 确保值在0-255范围内
                     if image.max() <= 1.0:  # 如果是0-1范围
                         image = (image * 255).clip(0, 255).astype('uint8')
-                        print(f"归一化到0-255，值范围: {image.min()}-{image.max()}")
+                        print(f"[OpenAIImageAPI] 归一化到0-255，值范围: {image.min()}-{image.max()}")
                     img = Image.fromarray(image)
-                    print(f"PIL图像创建成功: 尺寸={img.size}, 模式={img.mode}")
+                    print(f"[OpenAIImageAPI] PIL图像创建成功: 尺寸={img.size}, 模式={img.mode}")
                 else:
                     raise Exception(f"不支持的图像格式: {type(image)}")
             
             return img
             
         except Exception as e:
-            print(f"图像转换失败: {e}")
+            print(f"[OpenAIImageAPI] 图像转换失败: {e}")
             raise Exception(f"图像转换失败: {e}")
 
     def _pil_to_comfyui(self, pil_image):
@@ -811,14 +811,14 @@ class OpenAIImageAPI:
             return image_tensor
             
         except Exception as e:
-            print(f"ComfyUI格式转换失败: {e}")
+            print(f"[OpenAIImageAPI] ComfyUI格式转换失败: {e}")
             # 如果转换失败，返回一个安全的空图像
             try:
                 import torch
                 # 返回符合ComfyUI格式的空图像 (1, H, W, 3)
                 return torch.zeros(1, 512, 512, 3, dtype=torch.float32)
             except Exception as e2:
-                print(f"创建安全空图像也失败: {e2}")
+                print(f"[OpenAIImageAPI] 创建安全空图像也失败: {e2}")
                 return None
 
     def _format_generation_info(self, data, image_url):
@@ -887,7 +887,7 @@ class OpenAIImageAPI:
             pil_image = Image.fromarray((empty_array * 255).astype(np.uint8))
             return self._pil_to_comfyui(pil_image)
         except Exception as e:
-            print(f"创建空图像失败: {e}")
+            print(f"[OpenAIImageAPI] 创建空图像失败: {e}")
             # 如果转换失败，尝试直接创建torch tensor
             try:
                 import torch
@@ -895,7 +895,7 @@ class OpenAIImageAPI:
                 empty_tensor = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
                 return empty_tensor
             except Exception as e2:
-                print(f"创建torch tensor也失败: {e2}")
+                print(f"[OpenAIImageAPI] 创建torch tensor也失败: {e2}")
                 # 最后的备选方案：返回None，让ComfyUI处理
                 return None
 
