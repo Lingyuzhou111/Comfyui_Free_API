@@ -42,12 +42,15 @@ class QwenImageAPI:
         # 定义支持的尺寸选项
         size_options = [
             "1024x1024",
-            "768x1344", 
             "864x1152",
-            "1344x768",
             "1152x864",
-            "1440x720",
-            "720x1440"
+            "768x1344", 
+            "1344x768",
+            "1328x1328", 
+            "1140x1472",
+            "1472x1140",
+            "928x1664",
+            "1664x928"
         ]
         
         return {
@@ -86,11 +89,11 @@ class QwenImageAPI:
             n: 生成数量(可选)
             watermark: 是否添加水印(可选)
         """
-        logger.info(f"开始文生图生成...")
-        logger.info(f"模型: {model}")
-        logger.info(f"尺寸: {size}")
-        logger.info(f"提示词: {prompt}")
-        logger.info(f"智能改写: {'开启' if prompt_extend else '关闭'}")
+        logger.info(f"[QwenImageAPI] 开始文生图生成...")
+        logger.info(f"[QwenImageAPI] 模型: {model}")
+        logger.info(f"[QwenImageAPI] 尺寸: {size}")
+        logger.info(f"[QwenImageAPI] 提示词: {prompt}")
+        logger.info(f"[QwenImageAPI] 智能改写: {'开启' if prompt_extend else '关闭'}")
         
         # 读取Qwen API参数
         base_url = self.config.get('base_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis')
@@ -122,11 +125,11 @@ class QwenImageAPI:
         # 添加可选参数
         if negative_prompt:
             payload["input"]["negative_prompt"] = negative_prompt
-            logger.info(f"反向提示词: {negative_prompt}")
+            logger.info(f"[QwenImageAPI] 反向提示词: {negative_prompt}")
         
         if seed is not None and seed != -1:
             payload["parameters"]["seed"] = seed
-            logger.info(f"随机种子: {seed}")
+            logger.info(f"[QwenImageAPI] 随机种子: {seed}")
         
         # 2. 发送请求
         try:
@@ -137,19 +140,19 @@ class QwenImageAPI:
             }
             
             # 打印调试信息
-            logger.debug(f"🔍 请求URL: {base_url}")
-            logger.debug(f"🔍 请求头: {headers}")
-            logger.debug(f"🔍 请求体: {json.dumps(payload, ensure_ascii=False, indent=2)}")
+            logger.debug(f"[QwenImageAPI] 🔍 请求URL: {base_url}")
+            logger.debug(f"[QwenImageAPI] 🔍 请求头: {headers}")
+            logger.debug(f"[QwenImageAPI] 🔍 请求体: {json.dumps(payload, ensure_ascii=False, indent=2)}")
             
             # 提交任务
             resp = requests.post(base_url, headers=headers, json=payload, timeout=180)
             
             # 打印响应信息
-            logger.info(f"🔍 响应状态码: {resp.status_code}")
-            logger.debug(f"🔍 响应头: {dict(resp.headers)}")
+            logger.info(f"[QwenImageAPI] 🔍 响应状态码: {resp.status_code}")
+            logger.debug(f"[QwenImageAPI] 🔍 响应头: {dict(resp.headers)}")
             
             if resp.status_code != 200:
-                logger.error(f"❌ 响应内容: {resp.text}")
+                logger.error(f"[QwenImageAPI] ❌ 响应内容: {resp.text}")
             
             resp.raise_for_status()
             task_data = resp.json()
@@ -157,7 +160,7 @@ class QwenImageAPI:
             # 获取任务ID
             task_id = task_data.get("output", {}).get("task_id")
             if not task_id:
-                logger.error("❌ 未获取到任务ID")
+                logger.error("[QwenImageAPI] ❌ 未获取到任务ID")
                 error_info = f"错误: API响应中未获取到任务ID，响应内容: {task_data}"
                 error_image = self._create_error_image()
                 return (error_image[0], "任务提交失败", error_info)
@@ -169,12 +172,12 @@ class QwenImageAPI:
             
         except requests.exceptions.RequestException as e:
             logger.error(f"❌ API请求失败: {e}")
-            error_info = f"API请求失败\n错误类型: {type(e).__name__}\n错误详情: {str(e)}\n请检查网络连接和API配置"
+            error_info = f"[QwenImageAPI] API请求失败\n错误类型: {type(e).__name__}\n错误详情: {str(e)}\n请检查网络连接和API配置"
             error_image = self._create_error_image()
             return (error_image[0], f"API请求失败: {str(e)}", error_info)
         except Exception as e:
-            logger.error(f"❌ 处理失败: {e}")
-            error_info = f"处理失败\n错误类型: {type(e).__name__}\n错误详情: {str(e)}"
+            logger.error(f"[QwenImageAPI] ❌ 处理失败: {e}")
+            error_info = f"[QwenImageAPI] 处理失败\n错误类型: {type(e).__name__}\n错误详情: {str(e)}"
             error_image = self._create_error_image()
             return (error_image[0], f"处理失败: {str(e)}", error_info)
 
@@ -201,8 +204,8 @@ class QwenImageAPI:
                     if results and len(results) > 0:
                         image_url = results[0].get("url")
                         if image_url:
-                            logger.info("✅ 任务成功，开始下载结果图像")
-                            logger.info(f"🖼️ 图像URL: {image_url}")
+                            logger.info("[QwenImageAPI] ✅ 任务成功，开始下载结果图像")
+                            logger.info(f"[QwenImageAPI] 🖼️ 图像URL: {image_url}")
                             
                             # 提取生成信息
                             generation_info = self._extract_generation_info(task_id, result_data)
@@ -212,18 +215,18 @@ class QwenImageAPI:
                             
                             return (image_object[0], image_url, generation_info)
                         else:
-                            logger.error("❌ 图像URL为空")
+                            logger.error("[QwenImageAPI] ❌ 图像URL为空")
                             failure_info = self._extract_failure_info(task_id, result_data)
                             error_image = self._create_error_image()
                             return (error_image[0], "图像URL为空", failure_info)
                     else:
-                        logger.error("❌ 没有获取到结果")
+                        logger.error("[QwenImageAPI] ❌ 没有获取到结果")
                         failure_info = self._extract_failure_info(task_id, result_data)
                         error_image = self._create_error_image()
                         return (error_image[0], "没有获取到结果", failure_info)
                 
                 elif task_status == "FAILED":
-                    logger.error("❌ 任务执行失败")
+                    logger.error("[QwenImageAPI] ❌ 任务执行失败")
                     failure_info = self._extract_failure_info(task_id, result_data)
                     error_image = self._create_error_image()
                     return (error_image[0], "任务执行失败", failure_info)
@@ -231,41 +234,41 @@ class QwenImageAPI:
                 elif task_status in ["PENDING", "RUNNING"]:
                     # 任务还在进行中，等待后重试
                     if attempt % 10 == 0:  # 每10次重试打印一次状态
-                        logger.info(f"⏳ 任务进行中... (第{attempt+1}次检查)")
+                        logger.info(f"[QwenImageAPI] ⏳ 任务进行中... (第{attempt+1}次检查)")
                     time.sleep(retry_interval)
                     continue
                 
                 else:
-                    logger.warning(f"⚠️ 未知任务状态: {task_status}")
+                    logger.warning(f"[QwenImageAPI] ⚠️ 未知任务状态: {task_status}")
                     time.sleep(retry_interval)
                     continue
                     
             except requests.exceptions.RequestException as e:
-                logger.error(f"❌ 轮询请求失败: {e}")
+                logger.error(f"[QwenImageAPI] ❌ 轮询请求失败: {e}")
                 time.sleep(retry_interval)
                 continue
             except Exception as e:
-                logger.error(f"❌ 轮询处理失败: {e}")
+                logger.error(f"[QwenImageAPI] ❌ 轮询处理失败: {e}")
                 time.sleep(retry_interval)
                 continue
         
-        logger.error("❌ 轮询超时，返回错误图像")
+        logger.error("[QwenImageAPI] ❌ 轮询超时，返回错误图像")
         timeout_info = f"任务ID: {task_id}\n状态: 轮询超时\n建议: 请稍后手动查询任务状态"
         error_image = self._create_error_image()
-        return (error_image[0], "轮询超时，请稍后手动查询任务状态", timeout_info)
+        return (error_image[0], "[QwenImageAPI] 轮询超时，请稍后手动查询任务状态", timeout_info)
 
     def _download_and_convert_image(self, image_url):
         """
         下载并转换图像为ComfyUI格式
         """
         try:
-            logger.info(f"⬇️ 开始下载图像...")
+            logger.info(f"[QwenImageAPI] ⬇️ 开始下载图像...")
             
             # 下载图像
             response = requests.get(image_url, timeout=60)
             response.raise_for_status()
             
-            logger.info(f"图像数据接收完毕 (大小: {len(response.content)/1024:.1f} KB)")
+            logger.info(f"[QwenImageAPI] 图像数据接收完毕 (大小: {len(response.content)/1024:.1f} KB)")
             
             # 将图像数据转换为PIL Image
             image = Image.open(BytesIO(response.content))
@@ -282,7 +285,7 @@ class QwenImageAPI:
             import torch
             image_tensor = torch.from_numpy(image_np)[None,]
             
-            logger.info(f"✅ 图像解码并转换为Tensor成功: {image_tensor.shape}")
+            logger.info(f"[QwenImageAPI] ✅ 图像解码并转换为Tensor成功: {image_tensor.shape}")
             return (image_tensor,)
             
         except Exception as e:
