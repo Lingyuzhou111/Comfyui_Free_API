@@ -81,14 +81,14 @@ except ImportError as e:
     QWEN_NODE_MAPPINGS = {}
     QWEN_DISPLAY_MAPPINGS = {}
 
-# 导入Qwen图像编辑节点
+# 导入wanx2.1图像编辑节点
 try:
-    from Qwen_Node.qwen_imageedit_api_node import NODE_CLASS_MAPPINGS as QWEN_IMAGEEDIT_NODE_MAPPINGS
-    from Qwen_Node.qwen_imageedit_api_node import NODE_DISPLAY_NAME_MAPPINGS as QWEN_IMAGEEDIT_DISPLAY_MAPPINGS
+    from Qwen_Node.wanx21_imageedit_api_node import NODE_CLASS_MAPPINGS as WANX21_IMAGEEDIT_NODE_MAPPINGS
+    from Qwen_Node.wanx21_imageedit_api_node import NODE_DISPLAY_NAME_MAPPINGS as WANX21_IMAGEEDIT_DISPLAY_MAPPINGS
 except ImportError as e:
-    print(f"Warning: Failed to import Qwen_Node.qwen_imageedit_api_node: {e}")
-    QWEN_IMAGEEDIT_NODE_MAPPINGS = {}
-    QWEN_IMAGEEDIT_DISPLAY_MAPPINGS = {}
+    print(f"Warning: Failed to import Qwen_Node.wanx21_imageedit_api_node: {e}")
+    WANX21_IMAGEEDIT_NODE_MAPPINGS = {}
+    WANX21_IMAGEEDIT_DISPLAY_MAPPINGS = {}
 
 # 导入Qwen文生图节点
 try:
@@ -117,6 +117,24 @@ except ImportError as e:
     QWEN_CHECK_TASK_NODE_MAPPINGS = {}
     QWEN_CHECK_TASK_DISPLAY_MAPPINGS = {}
 
+# 导入Qwen TTS API节点
+try:
+    from Qwen_Node.qwen_tts_api_node import NODE_CLASS_MAPPINGS as QWEN_TTS_NODE_MAPPINGS
+    from Qwen_Node.qwen_tts_api_node import NODE_DISPLAY_NAME_MAPPINGS as QWEN_TTS_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Qwen_Node.qwen_tts_api_node: {e}")
+    QWEN_TTS_NODE_MAPPINGS = {}
+    QWEN_TTS_DISPLAY_MAPPINGS = {}
+
+# 导入Qwen图像编辑API节点
+try:
+    from Qwen_Node.qwen_image_edit_api_node import NODE_CLASS_MAPPINGS as QWEN_IMAGE_EDIT_NODE_MAPPINGS
+    from Qwen_Node.qwen_image_edit_api_node import NODE_DISPLAY_NAME_MAPPINGS as QWEN_IMAGE_EDIT_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Qwen_Node.qwen_image_edit_api_node: {e}")
+    QWEN_IMAGE_EDIT_NODE_MAPPINGS = {}
+    QWEN_IMAGE_EDIT_DISPLAY_MAPPINGS = {}
+
 # 导入Siliconflow LLM API节点
 try:
     from Siliconflow_Node.siliconflow_llm_api_node import NODE_CLASS_MAPPINGS as SILICONFLOW_LLM_NODE_MAPPINGS
@@ -135,6 +153,42 @@ except ImportError as e:
     SILICONFLOW_NODE_MAPPINGS = {}
     SILICONFLOW_DISPLAY_MAPPINGS = {}
 
+# 导入Siliconflow TTS API节点
+try:
+    from Siliconflow_Node.siliconflow_tts_api_node import NODE_CLASS_MAPPINGS as SILICONFLOW_TTS_NODE_MAPPINGS
+    from Siliconflow_Node.siliconflow_tts_api_node import NODE_DISPLAY_NAME_MAPPINGS as SILICONFLOW_TTS_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Siliconflow_Node.siliconflow_tts_api_node: {e}")
+    SILICONFLOW_TTS_NODE_MAPPINGS = {}
+    SILICONFLOW_TTS_DISPLAY_MAPPINGS = {}
+
+# 导入Siliconflow 音频上传节点
+try:
+    from Siliconflow_Node.siliconflow_audio_to_uri import NODE_CLASS_MAPPINGS as SILICONFLOW_AUDIO_URI_NODE_MAPPINGS
+    from Siliconflow_Node.siliconflow_audio_to_uri import NODE_DISPLAY_NAME_MAPPINGS as SILICONFLOW_AUDIO_URI_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Siliconflow_Node.siliconflow_audio_to_uri: {e}")
+    SILICONFLOW_AUDIO_URI_NODE_MAPPINGS = {}
+    SILICONFLOW_AUDIO_URI_DISPLAY_MAPPINGS = {}
+
+# 导入Siliconflow 音频转文字节点
+try:
+    from Siliconflow_Node.siliconflow_audio_to_text import NODE_CLASS_MAPPINGS as SILICONFLOW_AUDIO_TO_TEXT_NODE_MAPPINGS
+    from Siliconflow_Node.siliconflow_audio_to_text import NODE_DISPLAY_NAME_MAPPINGS as SILICONFLOW_AUDIO_TO_TEXT_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Siliconflow_Node.siliconflow_audio_to_text: {e}")
+    SILICONFLOW_AUDIO_TO_TEXT_NODE_MAPPINGS = {}
+    SILICONFLOW_AUDIO_TO_TEXT_DISPLAY_MAPPINGS = {}
+
+# 导入Siliconflow 自定义音色列表节点
+try:
+    from Siliconflow_Node.siliconflow_voice_uri_list import NODE_CLASS_MAPPINGS as SILICONFLOW_VOICE_URI_LIST_NODE_MAPPINGS
+    from Siliconflow_Node.siliconflow_voice_uri_list import NODE_DISPLAY_NAME_MAPPINGS as SILICONFLOW_VOICE_URI_LIST_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Siliconflow_Node.siliconflow_voice_uri_list: {e}")
+    SILICONFLOW_VOICE_URI_LIST_NODE_MAPPINGS = {}
+    SILICONFLOW_VOICE_URI_LIST_DISPLAY_MAPPINGS = {}
+
 # 导入Gemini VLM API节点
 try:
     from Gemini_Node.gemini_vlm_api_node import NODE_CLASS_MAPPINGS as GEMINI_VLM_NODE_MAPPINGS
@@ -152,25 +206,6 @@ except ImportError as e:
     print(f"Warning: Failed to import Gemini_Node.gemini_image_api_node: {e}")
     GEMINI_IMAGE_NODE_MAPPINGS = {}
     GEMINI_IMAGE_DISPLAY_MAPPINGS = {}    
-
-# 导入Image to Cloudinary URL节点
-try:
-    from GLIF_Node.Image_to_Cloudinary_url import NODE_CLASS_MAPPINGS as IMAGE_TO_CLOUDINARY_NODE_MAPPINGS
-    from GLIF_Node.Image_to_Cloudinary_url import NODE_DISPLAY_NAME_MAPPINGS as IMAGE_TO_CLOUDINARY_DISPLAY_MAPPINGS
-except ImportError as e:
-    print(f"Warning: Failed to import GLIF_Node.Image_to_Cloudinary_url: {e}")
-    IMAGE_TO_CLOUDINARY_NODE_MAPPINGS = {}
-    IMAGE_TO_CLOUDINARY_DISPLAY_MAPPINGS = {}
-
-# 导入Load Image from URL节点
-try:
-    from GLIF_Node.Load_Image_from_URL import NODE_CLASS_MAPPINGS as LOAD_IMAGE_FROM_URL_NODE_MAPPINGS
-    from GLIF_Node.Load_Image_from_URL import NODE_DISPLAY_NAME_MAPPINGS as LOAD_IMAGE_FROM_URL_DISPLAY_MAPPINGS
-except ImportError as e:
-    print(f"Warning: Failed to import GLIF_Node.Load_Image_from_URL: {e}")
-    LOAD_IMAGE_FROM_URL_NODE_MAPPINGS = {}
-    LOAD_IMAGE_FROM_URL_DISPLAY_MAPPINGS = {}
-
 
 # 合并所有节点的映射
 NODE_CLASS_MAPPINGS = {}
@@ -196,9 +231,9 @@ NODE_DISPLAY_NAME_MAPPINGS.update(GLM_IMAGE_DISPLAY_MAPPINGS)
 NODE_CLASS_MAPPINGS.update(QWEN_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_DISPLAY_MAPPINGS)
 
-# 添加Qwen图像编辑节点
-NODE_CLASS_MAPPINGS.update(QWEN_IMAGEEDIT_NODE_MAPPINGS)
-NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_IMAGEEDIT_DISPLAY_MAPPINGS)
+# 添加Wan2.1图像编辑节点
+NODE_CLASS_MAPPINGS.update(WANX21_IMAGEEDIT_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(WANX21_IMAGEEDIT_DISPLAY_MAPPINGS)
 
 # 添加Qwen文生图节点
 NODE_CLASS_MAPPINGS.update(QWEN_IMAGE_NODE_MAPPINGS)
@@ -212,6 +247,14 @@ NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_VIDEO_DISPLAY_MAPPINGS)
 NODE_CLASS_MAPPINGS.update(QWEN_CHECK_TASK_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_CHECK_TASK_DISPLAY_MAPPINGS)
 
+# 添加Qwen TTS API节点
+NODE_CLASS_MAPPINGS.update(QWEN_TTS_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_TTS_DISPLAY_MAPPINGS)
+
+# 添加Qwen图像编辑API节点
+NODE_CLASS_MAPPINGS.update(QWEN_IMAGE_EDIT_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_IMAGE_EDIT_DISPLAY_MAPPINGS)
+
 # 添加Qwen LLM API节点
 NODE_CLASS_MAPPINGS.update(QWEN_LLM_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_LLM_DISPLAY_MAPPINGS)
@@ -219,6 +262,22 @@ NODE_DISPLAY_NAME_MAPPINGS.update(QWEN_LLM_DISPLAY_MAPPINGS)
 # 添加Siliconflow节点
 NODE_CLASS_MAPPINGS.update(SILICONFLOW_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(SILICONFLOW_DISPLAY_MAPPINGS)
+
+# 添加Siliconflow TTS API节点
+NODE_CLASS_MAPPINGS.update(SILICONFLOW_TTS_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(SILICONFLOW_TTS_DISPLAY_MAPPINGS)
+
+# 添加Siliconflow 音频上传节点
+NODE_CLASS_MAPPINGS.update(SILICONFLOW_AUDIO_URI_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(SILICONFLOW_AUDIO_URI_DISPLAY_MAPPINGS)
+
+# 添加Siliconflow 音频转文字节点
+NODE_CLASS_MAPPINGS.update(SILICONFLOW_AUDIO_TO_TEXT_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(SILICONFLOW_AUDIO_TO_TEXT_DISPLAY_MAPPINGS)
+
+# 添加Siliconflow 自定义音色列表节点
+NODE_CLASS_MAPPINGS.update(SILICONFLOW_VOICE_URI_LIST_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(SILICONFLOW_VOICE_URI_LIST_DISPLAY_MAPPINGS)
 
 # 添加Siliconflow LLM API节点
 NODE_CLASS_MAPPINGS.update(SILICONFLOW_LLM_NODE_MAPPINGS)
@@ -239,14 +298,6 @@ NODE_DISPLAY_NAME_MAPPINGS.update(OPENAI_CHAT_DISPLAY_MAPPINGS)
 # 添加OpenAI兼容图像API节点
 NODE_CLASS_MAPPINGS.update(OPENAI_IMAGE_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(OPENAI_IMAGE_DISPLAY_MAPPINGS)
-
-# 添加Image to Cloudinary URL节点
-NODE_CLASS_MAPPINGS.update(IMAGE_TO_CLOUDINARY_NODE_MAPPINGS)
-NODE_DISPLAY_NAME_MAPPINGS.update(IMAGE_TO_CLOUDINARY_DISPLAY_MAPPINGS)
-
-# 添加Load Image from URL节点
-NODE_CLASS_MAPPINGS.update(LOAD_IMAGE_FROM_URL_NODE_MAPPINGS)
-NODE_DISPLAY_NAME_MAPPINGS.update(LOAD_IMAGE_FROM_URL_DISPLAY_MAPPINGS)
 
 # 导出节点映射，供ComfyUI使用
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS'] 
