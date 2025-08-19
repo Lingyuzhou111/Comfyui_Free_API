@@ -60,7 +60,7 @@ class OpenAIChatAPI:
         # 添加系统提示词
         if system_prompt:
             messages.append({
-                "role": "system",
+                "role": "assistant",
                 "content": system_prompt
             })
         
@@ -70,7 +70,7 @@ class OpenAIChatAPI:
             try:
                 # 将image转为base64
                 image_base64 = self._image_to_base64(image)
-                print(f"图像转换为base64成功，长度: {len(image_base64)}, 预览: {self._truncate_base64_log(image_base64)}")
+                print(f"[OpenAIChatAPI] 图像转换为base64成功，长度: {len(image_base64)}, 预览: {self._truncate_base64_log(image_base64)}")
                 
                 # 构造包含图像的消息
                 user_content = [
@@ -106,16 +106,16 @@ class OpenAIChatAPI:
             headers = self._build_headers(api_key)
             # 确保URL格式正确，避免双斜杠
             api_url = f"{base_url.rstrip('/')}/chat/completions"
-            print(f"正在请求OpenAI兼容API: {api_url}")
-            print(f"请求参数: model={model}, max_tokens={max_tokens}")
-            print(f"请求头: {headers}")
-            print(f"请求载荷: {self._safe_json_dumps(payload)}")
+            print(f"[OpenAIChatAPI] 正在请求OpenAI兼容API: {api_url}")
+            print(f"[OpenAIChatAPI] 请求参数: model={model}, max_tokens={max_tokens}")
+            #print(f"[OpenAIChatAPI] 请求头: {headers}")
+            #print(f"[OpenAIChatAPI] 请求载荷: {self._safe_json_dumps(payload)}")
             
             resp = requests.post(api_url, headers=headers, json=payload, timeout=120)
             
             # 不立即抛出异常，让_parse_response处理所有响应
-            print(f"响应状态码: {resp.status_code}")
-            print(f"响应头: {dict(resp.headers)}")
+            print(f"[OpenAIChatAPI] 响应状态码: {resp.status_code}")
+            #print(f"[OpenAIChatAPI] 响应头: {dict(resp.headers)}")
             
             return self._parse_response(resp)
                 
@@ -180,8 +180,8 @@ class OpenAIChatAPI:
             # 首先检查HTTP状态码
             if resp.status_code != 200:
                 error_text = resp.text
-                print(f"API返回错误状态码: {resp.status_code}")
-                print(f"错误响应内容: {error_text}")
+                print(f"[OpenAIChatAPI] API返回错误状态码: {resp.status_code}")
+                print(f"[OpenAIChatAPI] 错误响应内容: {error_text}")
                 return ("", f"API错误 (状态码: {resp.status_code}): {error_text}", "")
             
             # 检查响应内容是否为空
@@ -192,8 +192,8 @@ class OpenAIChatAPI:
             try:
                 data = resp.json()
             except json.JSONDecodeError as json_error:
-                print(f"JSON解析失败: {json_error}")
-                print(f"响应内容: {resp.text[:500]}...")  # 只打印前500个字符
+                print(f"[OpenAIChatAPI] JSON解析失败: {json_error}")
+                print(f"[OpenAIChatAPI] 响应内容: {resp.text[:500]}...")  # 只打印前500个字符
                 return ("", f"API响应格式错误: {resp.text[:200]}", "")
             
             print("API原始响应:", data)  # 调试输出
@@ -225,10 +225,10 @@ class OpenAIChatAPI:
                 return ("", "API未返回choices内容", tokens_usage)
                 
         except Exception as e:
-            print(f"响应解析异常: {e}")
-            print(f"响应状态码: {resp.status_code}")
-            print(f"响应头: {dict(resp.headers)}")
-            print(f"响应内容: {resp.text[:500]}...")
+            print(f"[OpenAIChatAPI] 响应解析异常: {e}")
+            print(f"[OpenAIChatAPI] 响应状态码: {resp.status_code}")
+            print(f"[OpenAIChatAPI] 响应头: {dict(resp.headers)}")
+            print(f"[OpenAIChatAPI] 响应内容: {resp.text[:500]}...")
             return ("", f"响应解析失败: {e}", "")
 
     def _parse_content_tags(self, content):
