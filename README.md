@@ -14,6 +14,12 @@
 
 > 新增支持硅基流动、火山方舟、魔搭等API平台的图像生成，支持调用第三方gpt-image-1的API进行多图编辑
 
+> 新增支持Qwen-TTS的语言合成，Siliconflow-TTS的语音合成和语言识别节点
+
+> Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
+
+> 新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
+
 ## 📖 示例工作流
 
 #### LLM API工作流
@@ -46,6 +52,16 @@
 #### 新增支持硅基流动、火山方舟、魔搭等API平台的图像生成和调用第三方gpt-image-1的API进行多图编辑
 <img width="1650" height="1149" alt="OpenAI兼容格式文生图-1" src="https://github.com/user-attachments/assets/65d81826-91a5-42c1-bf7e-5febed60d51f" />
 <img width="1995" height="718" alt="OpenAI兼容格式文生图-2" src="https://github.com/user-attachments/assets/c73ce3d3-fcd1-4e35-a4d8-53e5f1537a77" />
+
+#### 新增支持Qwen-TTS的语言合成，Siliconflow-TTS的语音合成和语言识别节点
+<img width="2330" height="979" alt="wechat_2025-08-18_060009_885" src="https://github.com/user-attachments/assets/ec6614d1-20e1-42b5-a003-73f93b8cec58" />
+<img width="2130" height="910" alt="wechat_2025-08-18_060849_384" src="https://github.com/user-attachments/assets/690a2083-534f-45ec-abba-410c7cc19c41" />
+
+####  Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
+<img width="2173" height="886" alt="wechat_2025-08-19_172042_625" src="https://github.com/user-attachments/assets/a857e7b2-234a-4c17-b0c9-eb91683a61e6" />
+
+####  新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
+<img width="2165" height="888" alt="wechat_2025-08-19_172109_520" src="https://github.com/user-attachments/assets/d205a80a-2d42-4062-a8ce-b09b4435cb2d" />
 
 ## 🚀 功能特性 
 
@@ -177,4 +193,5 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
