@@ -33,7 +33,7 @@ class GeminiVLMAPI:
             "required": {
                 "image": ("IMAGE",),
                 "model": (model_options, {"default": model_options[0]}),
-                "max_tokens": ("INT", {"default": 512, "min": 1, "max": 4096, "step": 1}),
+                "max_tokens": ("INT", {"default": 512, "min": 1, "max": 16384, "step": 1}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.01}),
                 "top_p": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 1.0, "step": 0.01}),
                 "system_prompt": ("STRING", {"multiline": True, "default": "你是一个能分析图像的AI助手。请仔细观察图像，并根据用户的问题提供详细、准确的描述。"}),
