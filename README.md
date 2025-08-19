@@ -4,21 +4,21 @@
 
 > 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有免费使用额度，新手友好。
 
-> **250715** ———通过在插件目录下的config.json文件中添加`model`名称，然后重启ComfyUI即可添加以上平台的更多模型。
+> **250715** ：通过在插件目录下的config.json文件中添加`model`名称，然后重启ComfyUI即可添加以上平台的更多模型。
 
-> **250717** ———新增OpenAI兼容Chat API和Image API节点，任何兼容OpenAI通用接口格式的文本、视觉和画图API节点均可使用。
+> **250717** ：新增OpenAI兼容Chat API和Image API节点，任何兼容OpenAI通用接口格式的文本、视觉和画图API节点均可使用。
 
-> **250717** ———新增Qwen Image API和Qwen Video API节点，支持最新的Wan2.2文生图、Wan2.2文生视频、Wan2.2图生视频和Wan2.1首尾帧生视频。
+> **250717** ：新增Qwen Image API和Qwen Video API节点，支持最新的Wan2.2文生图、Wan2.2文生视频、Wan2.2图生视频和Wan2.1首尾帧生视频。
 
-> **250729** ———GLM LLM API节点支持最新的glm-4.5、glm-4.5-air和glm-4.5-flash推理模型。
+> **250729** ：GLM LLM API节点支持最新的glm-4.5、glm-4.5-air和glm-4.5-flash推理模型。
 
-> **250805** ———新增支持硅基流动、火山方舟、魔搭等API平台的图像生成，支持调用第三方gpt-image-1的API进行多图编辑
+> **250805** ：新增支持硅基流动、火山方舟、魔搭等API平台的图像生成，支持调用第三方gpt-image-1的API进行多图编辑
 
-> **250817** ———新增支持Qwen-TTS的语言合成，Siliconflow-TTS的语音合成和语言识别节点
+> **250817** ：新增支持Qwen-TTS的语言合成，Siliconflow-TTS的语音合成和语言识别节点
 
-> **250818** ———Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
+> **250818** ：Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
 
-> **250819** ———新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
+> **250819** ：新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
 
 ## 📖 示例工作流
 
@@ -193,6 +193,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
