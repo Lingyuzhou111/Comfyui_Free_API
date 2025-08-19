@@ -38,7 +38,8 @@
             "baidu/ERNIE-4.5-300B-A47B",
             "tencent/Hunyuan-A13B-Instruct",
             "MiniMaxAI/MiniMax-M1-80k",
-            "THUDM/GLM-4-9B-0414"
+            "THUDM/GLM-4-9B-0414",
+            "zai-org/GLM-4.5"
             ]
         }
     },
@@ -87,11 +88,10 @@
         "api_key": "your_siliconflow_api_key",
         "model": [
             "THUDM/GLM-4.1V-9B-Thinking",
-            "Pro/THUDM/GLM-4.1V-9B-Thinking",
+            "zai-org/GLM-4.5V",
             "Qwen/Qwen2.5-VL-72B-Instruct",
             "Qwen/Qwen2.5-VL-32B-Instruct",
-            "Qwen/Qwen2-VL-72B-Instruct",
-            "Qwen/QVQ-72B-Preview",
+            "stepfun-ai/step3",
             "deepseek-ai/deepseek-vl2"
             ]
         }
@@ -149,3 +149,4 @@
         }
     }
 }
+
