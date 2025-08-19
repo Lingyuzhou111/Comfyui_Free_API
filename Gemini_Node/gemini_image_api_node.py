@@ -56,7 +56,7 @@ class GeminiImageAPI:
         4. 解析响应并返回图像数据
         """
         # 读取Gemini API参数
-        base_url = self.config.get('base_url', 'https://generativelanguage.googleapis.com/v1beta/openai')
+        base_url = self.config.get('base_url', 'https://generativelanguage.googleapis.com/v1beta')
         api_key = self.config.get('api_key', '')
         
         if not api_key:
@@ -99,8 +99,8 @@ class GeminiImageAPI:
             
             # 发送请求 - 使用正确的Gemini API端点
             headers = self._build_headers(api_key)
-            # 修正API URL格式
-            api_url = f"{base_url.rstrip('/')}/models/{model}:generateContent"
+            # 修正API URL格式 - 使用正确的Google Gemini API端点
+            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
             print(f"正在请求Gemini文生图API: {api_url}")
             print(f"请求参数: model={model}")
             print(f"请求载荷: {self._safe_json_dumps(payload)}")
@@ -177,7 +177,8 @@ class GeminiImageAPI:
             
             # 发送请求
             headers = self._build_headers(api_key)
-            api_url = f"{base_url.rstrip('/')}/models/{model}:generateContent"
+            # 修正API URL格式 - 使用正确的Google Gemini API端点
+            api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
             print(f"正在请求Gemini图生图API: {api_url}")
             print(f"请求参数: model={model}, 输入图像数量={len(input_images)}")
             print(f"请求载荷: {self._safe_json_dumps(payload)}")
