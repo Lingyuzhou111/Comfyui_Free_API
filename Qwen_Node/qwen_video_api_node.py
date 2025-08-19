@@ -87,12 +87,12 @@ class QwenVideoAPI:
             first_frame_image: 首帧图像(可选)
             last_frame_image: 末帧图像(可选)
         """
-        logger.info(f"开始视频生成...")
-        logger.info(f"模型: {model}")
-        logger.info(f"分辨率: {resolution}")
-        logger.info(f"宽高比: {ratio}")
-        logger.info(f"提示词: {prompt}")
-        logger.info(f"智能改写: {'开启' if prompt_extend else '关闭'}")
+        logger.info(f"[QwenVideoAPI] 开始视频生成...")
+        logger.info(f"[QwenVideoAPI] 模型: {model}")
+        logger.info(f"[QwenVideoAPI] 分辨率: {resolution}")
+        logger.info(f"[QwenVideoAPI] 宽高比: {ratio}")
+        logger.info(f"[QwenVideoAPI] 提示词: {prompt}")
+        logger.info(f"[QwenVideoAPI] 智能改写: {'开启' if prompt_extend else '关闭'}")
         
         # 读取Qwen API参数
         api_key = self.config.get('api_key', '')
@@ -170,7 +170,7 @@ class QwenVideoAPI:
         # 添加可选参数
         if seed is not None and seed != -1:
             payload["parameters"]["seed"] = seed
-            logger.info(f"随机种子: {seed}")
+            logger.info(f"[QwenVideoAPI] 随机种子: {seed}")
         
         # 2. 发送请求
         try:
@@ -181,17 +181,17 @@ class QwenVideoAPI:
             }
             
             # 打印调试信息
-            logger.info(f"🔍 请求URL: {base_url}")
+            logger.info(f"[QwenVideoAPI] 🔍 请求URL: {base_url}")
             
             # 创建用于日志的payload副本，简化base64编码显示
             log_payload = self._simplify_payload_for_log(payload)
-            logger.info(f"🔍 请求体: {json.dumps(log_payload, ensure_ascii=False, indent=2)}")
+            logger.info(f"[QwenVideoAPI] 🔍 请求体: {json.dumps(log_payload, ensure_ascii=False, indent=2)}")
             
             # 提交任务
             resp = requests.post(base_url, headers=headers, json=payload, timeout=180)
             
             # 打印响应信息
-            logger.info(f"🔍 响应状态码: {resp.status_code}")
+            logger.info(f"[QwenVideoAPI] 🔍 响应状态码: {resp.status_code}")
             
             if resp.status_code != 200:
                 logger.error(f"❌ 响应内容: {resp.text}")
@@ -205,7 +205,7 @@ class QwenVideoAPI:
                 logger.error("❌ 未获取到任务ID")
                 return (None, "任务提交失败", f"错误: API响应中未获取到任务ID，响应内容: {task_data}")
             
-            logger.info(f"✅ 任务提交成功，任务ID: {task_id}")
+            logger.info(f"[QwenVideoAPI] ✅ 任务提交成功，任务ID: {task_id}")
             
             # 轮询任务结果
             return self._poll_task_result(task_id, api_key)
@@ -225,15 +225,15 @@ class QwenVideoAPI:
         """
         # 首尾帧生视频模型仅支持720P
         if model == "wanx2.1-kf2v-plus":
-            logger.info("首尾帧生视频模型使用720P分辨率")
+            logger.info("[QwenVideoAPI] 首尾帧生视频模型使用720P分辨率")
             return "1280*720"  # 固定720P分辨率
         
         # wanx2.1-i2v-turbo模型仅支持480P和720P
         if model == "wanx2.1-i2v-turbo":
             if resolution == "1080P":
-                logger.error("wanx2.1-i2v-turbo模型不支持1080P分辨率，仅支持480P和720P")
+                logger.error("[QwenVideoAPI] wanx2.1-i2v-turbo模型不支持1080P分辨率，仅支持480P和720P")
                 return None
-            logger.info(f"wanx2.1-i2v-turbo模型使用{resolution}分辨率")
+            logger.info(f"[QwenVideoAPI] wanx2.1-i2v-turbo模型使用{resolution}分辨率")
         
         # 480P档位的分辨率映射
         if resolution == "480P":
@@ -339,8 +339,8 @@ class QwenVideoAPI:
                     # 任务成功，获取结果视频URL
                     video_url = result_data.get("output", {}).get("video_url")
                     if video_url:
-                        logger.info("✅ 任务成功，视频生成完成")
-                        logger.info(f"🎬 视频URL: {video_url}")
+                        logger.info("[QwenVideoAPI] ✅ 任务成功，视频生成完成")
+                        logger.info(f"[QwenVideoAPI] 🎬 视频URL: {video_url}")
                         
                         # 提取生成信息
                         generation_info = self._extract_generation_info(task_id, result_data)
@@ -361,7 +361,7 @@ class QwenVideoAPI:
                 elif task_status in ["PENDING", "RUNNING"]:
                     # 任务还在进行中，等待后重试
                     if attempt % 10 == 0:  # 每10次重试打印一次状态
-                        logger.info(f"⏳ 任务进行中... (第{attempt+1}次检查，预计需要2-5分钟)")
+                        logger.info(f"[QwenVideoAPI] ⏳ 任务进行中... (第{attempt+1}次检查，预计需要2-5分钟)")
                     time.sleep(retry_interval)
                     continue
                 
@@ -418,25 +418,25 @@ class QwenVideoAPI:
         下载并转换视频为ComfyUI格式
         """
         try:
-            logger.info(f"⬇️ 开始下载视频...")
+            logger.info(f"[QwenVideoAPI] ⬇️ 开始下载视频...")
             
             # 导入必要的模块
             try:
                 from comfy_api_nodes.apinode_utils import download_url_to_video_output
             except ImportError:
-                logger.error("❌ 无法导入 comfy_api_nodes.apinode_utils.download_url_to_video_output")
-                logger.info("💡 返回None，仅提供video_url输出")
+                logger.error("[QwenVideoAPI] ❌ 无法导入 comfy_api_nodes.apinode_utils.download_url_to_video_output")
+                logger.info("[QwenVideoAPI] 💡 返回None，仅提供video_url输出")
                 return None
             
             # 下载视频
             video_object = download_url_to_video_output(video_url, timeout=120)
             
-            logger.info(f"✅ 视频下载并转换为ComfyUI格式成功")
+            logger.info(f"[QwenVideoAPI] ✅ 视频下载并转换为ComfyUI格式成功")
             return video_object
             
         except Exception as e:
-            logger.error(f"❌ 视频下载转换失败: {e}")
-            logger.info("💡 返回None，仅提供video_url输出")
+            logger.error(f"[QwenVideoAPI] ❌ 视频下载转换失败: {e}")
+            logger.info("[QwenVideoAPI] 💡 返回None，仅提供video_url输出")
             return None
 
     def _extract_generation_info(self, task_id, result_data):
