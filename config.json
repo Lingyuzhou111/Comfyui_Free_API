@@ -110,9 +110,14 @@
     "qwen_image": {
         "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis",
         "api_key": "your_qwen_api_key",
-        "model": ["wan2.2-t2i-flash", "wan2.2-t2i-plus", "wanx2.1-t2i-turbo", "wanx2.1-t2i-plus"]
+        "model": ["qwen-image", "wan2.2-t2i-flash", "wan2.2-t2i-plus", "wanx2.1-t2i-turbo", "wanx2.1-t2i-plus"]
         },
-    "qwen_imageedit": {
+    "qwen_image_edit": {
+        "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+        "api_key": "your_qwen_api_key",
+        "model": ["qwen-image-edit"]
+        },
+    "wanx2.1_imageedit": {
         "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis",
         "api_key": "your_qwen_api_key",
         "model": "wanx2.1-imageedit"
@@ -128,8 +133,19 @@
         "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis",
         "kf2v_base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2video/video-synthesis",
         "api_key": "your_qwen_api_key",
-        "model": ["wan2.2-t2v-plus", "wan2.2-i2v-plus", "wanx2.1-kf2v-plus", "wanx2.1-i2v-turbo"]
+        "model": ["wan2.2-t2v-plus", "wan2.2-i2v-plus", "wan2.2-i2v-flash", "wanx2.1-kf2v-plus", "wanx2.1-i2v-turbo"]
+        }
+    },
+"TTS": {
+    "qwen_tts": {
+        "base_url": "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+        "api_key": "your_qwen_api_key",
+        "model": ["qwen-tts", "qwen-tts-latest", "qwen-tts-2025-05-22", "qwen-tts-2025-04-10"]
+        },    
+    "siliconflow_tts": {
+        "base_url": "https://api.siliconflow.cn/v1",
+        "api_key": "your_siliconflow_api_key",
+        "model": ["fnlp/MOSS-TTSD-v0.5", "FunAudioLLM/CosyVoice2-0.5B"]
         }
     }
 }
-
