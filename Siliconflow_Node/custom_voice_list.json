@@ -1,0 +1,46 @@
+{
+"FunAudioLLM/CosyVoice2-0.5B": [
+    {
+        "name": "CV_老郭",
+        "uri": "speech:GuoDegang01:cm06fwxp000068q4ogttrpwj5:omxqclokjynyyslmnjcz"
+    },
+    {
+        "name": "CV_雷总",
+        "uri": "speech:Leijun01:cm06fwxp000068q4ogttrpwj5:lwkmzfhxsgfvwekrlkrt"
+    },
+    {
+        "name": "CV_志玲",
+        "uri": "speech:Zhiling01:cm06fwxp000068q4ogttrpwj5:dhjmxgerjbyczoxbnoas"
+    },
+    {
+        "name": "CV_川普",
+        "uri": "speech:Trump01:cm06fwxp000068q4ogttrpwj5:mkpyyvgnkuuipuhijitb"
+    },
+    {
+        "name": "CV_哪吒",
+        "uri": "speech:NeZha01:cm06fwxp000068q4ogttrpwj5:kndtoetdzwjevucqdyao"
+    },
+    {
+        "name": "CV_猴哥",
+        "uri": "speech:Wukong01:cm06fwxp000068q4ogttrpwj5:yadgsxjjlobolivtteaf"
+    },
+    {
+        "name": "CV_龙婉",
+        "uri": "speech:LongWan01:cm06fwxp000068q4ogttrpwj5:udmjbdvowlhyofjtdbga"
+    },
+    {
+        "name": "CV_龙悦",
+        "uri": "speech:LongYue01:cm06fwxp000068q4ogttrpwj5:hsyzhxkprugnznmgmxfn"
+    }
+  ],
+"fnlp/MOSS-TTSD-v0.5": [
+    {
+        "name": "MT_龙嫱",
+        "uri": "speech:longqiang_v2:cm06fwxp000068q4ogttrpwj5:ckvlmpgewhfukhkqwapa"
+    },
+    {
+        "name": "MT_龙寒",
+        "uri": "speech:longhan_v2:cm06fwxp000068q4ogttrpwj5:zlplyeofwcuaglvgxirt"
+    }  
+  ]
+}
