@@ -10,9 +10,17 @@ import re
 class OpenAIImageAPI:
     """
     ComfyUI自定义节点：OpenAI兼容图像API
-    实现图像生成和图像编辑的通用API调用，支持任意兼容OpenAI格式的图像API接口。
-    输入参数：base_url, model, api_key, user_prompt, image1-4(可选), size, response_format
+    实现图像生成和图像编辑的通用API调用，支持多种API格式：
+    1. 传统images/generations端点（OpenAI、魔搭、SiliconFlow、火山方舟等）
+    2. chat/completions端点（使用于使用聊天格式的图像生成平台）
+    
+    输入参数：base_url, model, api_key, user_prompt, image1-4(可选), size, num_images, api_endpoint
     输出：image（生成的图像）, generation_info（生成信息，包含image_url和total_tokens）
+    
+    支持功能：
+    - 文生图：纯文本提示词生成图像
+    - 图生图：基于输入图像和提示词生成新图像
+    - 多平台兼容：自动适配不同平台的API格式差异
     """
     def __init__(self):
         pass
@@ -22,6 +30,7 @@ class OpenAIImageAPI:
         return {
             "required": {
                 "base_url": ("STRING", {"default": "https://api.openai.com/v1", "multiline": False}),
+                "api_endpoint": (["images/generations", "chat/completions"], {"default": "images/generations"}),
                 "model": ("STRING", {"default": "dall-e-3", "multiline": False}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
                 "user_prompt": ("STRING", {"multiline": True, "default": "生成一只可爱的小猫"}),
@@ -41,7 +50,7 @@ class OpenAIImageAPI:
     FUNCTION = "generate_image"
     CATEGORY = "API/OpenAI"
 
-    def generate_image(self, base_url, model, api_key, user_prompt, size, num_images, image1=None, image2=None, image3=None, image4=None):
+    def generate_image(self, base_url, model, api_key, user_prompt, size, num_images, api_endpoint, image1=None, image2=None, image3=None, image4=None):
         """
         主图像生成方法：
         1. 根据是否有输入图像决定是图像生成还是图像编辑
@@ -76,12 +85,18 @@ class OpenAIImageAPI:
         # 检查是否有输入图像，决定使用哪个API端点
         input_images = [img for img in [image1, image2, image3, image4] if img is not None]
         
-        if input_images:
-            # 图像编辑模式
-            return self._edit_images(base_url, model, api_key, user_prompt, input_images, size)
+        # 根据选择的API端点决定请求方式
+        if api_endpoint == "chat/completions":
+            # 使用chat/completions端点
+            return self._chat_completions_request(base_url, model, api_key, user_prompt, input_images, size, num_images)
         else:
-            # 图像生成模式
-            return self._generate_images(base_url, model, api_key, user_prompt, size, num_images)
+            # 使用传统的images端点
+            if input_images:
+                # 图像编辑模式
+                return self._edit_images(base_url, model, api_key, user_prompt, input_images, size)
+            else:
+                # 图像生成模式
+                return self._generate_images(base_url, model, api_key, user_prompt, size, num_images)
 
     def _generate_images(self, base_url, model, api_key, user_prompt, size, num_images):
         """
@@ -90,7 +105,7 @@ class OpenAIImageAPI:
         try:
             # 根据API端点选择合适的请求格式
             api_url = f"{base_url.rstrip('/')}/images/generations"
-            
+
             # 检测不同平台的API类型并设置对应的response_format
             is_modelscope = "modelscope.cn" in base_url
             is_siliconflow = "siliconflow.cn" in base_url
@@ -218,6 +233,88 @@ class OpenAIImageAPI:
                 import torch
                 empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
             return (empty_image, f"图像生成失败: {e}")
+
+    def _chat_completions_request(self, base_url, model, api_key, user_prompt, input_images, size, num_images):
+        """
+        使用chat/completions端点进行图像生成（支持文生图和图生图）
+        适用于使用OpenAI聊天格式的图像生成平台
+        """
+        try:
+            # 构建API端点URL
+            api_url = f"{base_url.rstrip('/')}/chat/completions"
+            
+            print(f"[OpenAIImageAPI] 正在请求Chat Completions API: {api_url}")
+            print(f"[OpenAIImageAPI] 请求参数: model={model}, 输入图像数量={len(input_images)}")
+            
+            # 构建消息内容
+            content = [{"type": "text", "text": user_prompt}]
+            
+            # 如果有输入图像，添加到消息内容中（图生图模式）
+            if input_images:
+                print(f"[OpenAIImageAPI] 图生图模式: 处理 {len(input_images)} 张输入图像")
+                for i, img in enumerate(input_images):
+                    try:
+                        # 将图像转换为PIL Image
+                        pil_image = self._convert_to_pil(img)
+                        
+                        # 转换为base64
+                        img_buffer = BytesIO()
+                        pil_image.save(img_buffer, format="PNG")
+                        img_buffer.seek(0)
+                        
+                        image_base64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
+                        base64_url = f"data:image/png;base64,{image_base64}"
+                        
+                        # 添加图像到消息内容
+                        content.append({
+                            "type": "image_url",
+                            "image_url": {
+                                "url": base64_url,
+                                "detail": "high"
+                            }
+                        })
+                        
+                        print(f"[OpenAIImageAPI] 图像{i+1}处理成功: 尺寸={pil_image.size}, base64长度={len(image_base64)}")
+                        
+                    except Exception as e:
+                        print(f"[OpenAIImageAPI] 图像{i+1}处理失败: {e}")
+                        empty_image = self._create_empty_image()
+                        if empty_image is None:
+                            import torch
+                            empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                        return (empty_image, f"图像{i+1}处理失败: {e}")
+            else:
+                print(f"[OpenAIImageAPI] 文生图模式: 纯文本提示词生成")
+            
+            # 构建请求载荷（参考lmarena-api.js的格式）
+            payload = {
+                "model": model,
+                "messages": [{
+                    "role": "user",
+                    "content": content
+                }],
+                "max_tokens": 1000,
+                "temperature": 0.7
+            }
+            
+            # 发送请求
+            headers = self._build_headers(api_key)
+            print(f"[OpenAIImageAPI] 请求载荷: {self._safe_json_dumps(payload)}")
+            
+            resp = requests.post(api_url, headers=headers, json=payload, timeout=300)
+            
+            print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
+            print(f"[OpenAIImageAPI] 响应头: {dict(resp.headers)}")
+            
+            # 解析chat/completions格式的响应
+            return self._parse_chat_completions_response(resp)
+                
+        except Exception as e:
+            empty_image = self._create_empty_image()
+            if empty_image is None:
+                import torch
+                empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+            return (empty_image, f"Chat Completions请求失败: {e}")
 
     def _edit_images(self, base_url, model, api_key, user_prompt, input_images, size):
         """
@@ -568,6 +665,177 @@ class OpenAIImageAPI:
                 empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
             return (empty_image, f"响应解析失败: {e}")
 
+    def _parse_chat_completions_response(self, resp):
+        """
+        解析chat/completions格式的API响应
+        用于处理平台返回的聊天格式响应
+        """
+        try:
+            # 检查HTTP状态码
+            if resp.status_code != 200:
+                error_text = resp.text
+                print(f"[OpenAIImageAPI] Chat Completions API返回错误状态码: {resp.status_code}")
+                print(f"[OpenAIImageAPI] 错误响应内容: {error_text}")
+                empty_image = self._create_empty_image()
+                if empty_image is None:
+                    import torch
+                    empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                return (empty_image, f"Chat Completions API错误 (状态码: {resp.status_code}): {error_text}")
+            
+            # 检查响应内容是否为空
+            if not resp.text.strip():
+                empty_image = self._create_empty_image()
+                if empty_image is None:
+                    import torch
+                    empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                return (empty_image, "Chat Completions API返回空响应")
+            
+            # 尝试解析JSON
+            try:
+                data = resp.json()
+            except json.JSONDecodeError as json_error:
+                print(f"[OpenAIImageAPI] Chat Completions JSON解析失败: {json_error}")
+                print(f"[OpenAIImageAPI] 响应内容: {resp.text[:500]}...")
+                empty_image = self._create_empty_image()
+                if empty_image is None:
+                    import torch
+                    empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                return (empty_image, f"Chat Completions API响应格式错误: {resp.text[:200]}")
+            
+            print(f"[OpenAIImageAPI] Chat Completions API原始响应: {self._safe_json_dumps(data)}")
+            
+            # 检查是否有错误信息
+            if "error" in data:
+                error_info = data["error"]
+                error_message = error_info.get("message", "未知错误")
+                error_type = error_info.get("type", "未知类型")
+                empty_image = self._create_empty_image()
+                if empty_image is None:
+                    import torch
+                    empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                return (empty_image, f"Chat Completions API错误 ({error_type}): {error_message}")
+            
+            # 解析choices数据（标准chat/completions格式）
+            if "choices" in data and data["choices"]:
+                choice = data["choices"][0]
+                message = choice.get("message", {})
+                
+                # 检查是否有attachments字段（生成的图像）
+                attachments = message.get("attachments") or message.get("experimental_attachments")
+                
+                if attachments and len(attachments) > 0:
+                    # 找到生成的图像URL
+                    image_url = attachments[0].get("url")
+                    if image_url:
+                        print(f"[OpenAIImageAPI] 从Chat Completions响应中找到图像URL: {image_url}")
+                        try:
+                            # 下载图像
+                            img_resp = requests.get(image_url, timeout=30)
+                            img_resp.raise_for_status()
+                            pil_image = Image.open(BytesIO(img_resp.content))
+                            print(f"[OpenAIImageAPI] Chat Completions图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
+                            
+                            # 转换为ComfyUI格式
+                            comfyui_image = self._pil_to_comfyui(pil_image)
+                            if comfyui_image is None:
+                                print(f"[OpenAIImageAPI] ComfyUI格式转换失败，使用空图像")
+                                import torch
+                                comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                            else:
+                                print(f"[OpenAIImageAPI] Chat Completions ComfyUI格式转换成功: 形状={comfyui_image.shape}")
+                            
+                            # 格式化生成信息
+                            generation_info = self._format_generation_info(data, image_url)
+                            print(f"[OpenAIImageAPI] Chat Completions生成信息: {generation_info}")
+                            
+                            return (comfyui_image, generation_info)
+                            
+                        except Exception as e:
+                            print(f"[OpenAIImageAPI] Chat Completions图像下载失败: {e}")
+                            empty_image = self._create_empty_image()
+                            if empty_image is None:
+                                import torch
+                                empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                            return (empty_image, f"Chat Completions图像下载失败: {e}")
+                    else:
+                        print(f"[OpenAIImageAPI] Chat Completions响应中未找到图像URL")
+                        empty_image = self._create_empty_image()
+                        if empty_image is None:
+                            import torch
+                            empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                        return (empty_image, "Chat Completions响应中未找到图像URL")
+                else:
+                    # 检查消息内容是否包含图像信息
+                    content = message.get("content", "")
+                    print(f"[OpenAIImageAPI] Chat Completions消息内容: {content[:200]}...")
+                    
+                    # 尝试从内容中提取图像URL（某些平台可能在文本中返回URL）
+                    # 首先尝试提取Markdown格式的图像链接 ![alt](url)
+                    markdown_pattern = r'!\[.*?\]\((https?://[^)]+\.(?:jpg|jpeg|png|gif|webp|bmp)[^)]*)\)'
+                    markdown_urls = re.findall(markdown_pattern, content, re.IGNORECASE)
+                    print(f"[OpenAIImageAPI] Markdown格式URL提取结果: {markdown_urls}")
+                    
+                    # 如果没找到Markdown格式，尝试直接提取URL（支持查询参数）
+                    if not markdown_urls:
+                        url_pattern = r'https?://[^\s<>"{}|\\^`\[\]()]+\.(?:jpg|jpeg|png|gif|webp|bmp)(?:\?[^\s<>"{}|\\^`\[\]()]*)?'
+                        urls = re.findall(url_pattern, content, re.IGNORECASE)
+                        print(f"[OpenAIImageAPI] 直接URL提取结果: {urls}")
+                    else:
+                        urls = markdown_urls
+                        print(f"[OpenAIImageAPI] 使用Markdown URL提取结果")
+                    
+                    if urls:
+                        image_url = urls[0]
+                        print(f"[OpenAIImageAPI] 从Chat Completions文本内容中提取到图像URL: {image_url}")
+                        try:
+                            # 下载图像
+                            img_resp = requests.get(image_url, timeout=30)
+                            img_resp.raise_for_status()
+                            pil_image = Image.open(BytesIO(img_resp.content))
+                            print(f"[OpenAIImageAPI] 提取URL图像下载成功: 尺寸={pil_image.size}")
+                            
+                            # 转换为ComfyUI格式
+                            comfyui_image = self._pil_to_comfyui(pil_image)
+                            if comfyui_image is None:
+                                import torch
+                                comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                            
+                            # 格式化生成信息
+                            generation_info = self._format_generation_info(data, image_url)
+                            
+                            return (comfyui_image, generation_info)
+                            
+                        except Exception as e:
+                            print(f"[OpenAIImageAPI] 提取URL图像下载失败: {e}")
+                            empty_image = self._create_empty_image()
+                            if empty_image is None:
+                                import torch
+                                empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                            return (empty_image, f"提取URL图像下载失败: {e}")
+                    else:
+                        empty_image = self._create_empty_image()
+                        if empty_image is None:
+                            import torch
+                            empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                        return (empty_image, f"Chat Completions响应中未找到图像数据: {content[:100]}...")
+            else:
+                print(f"[OpenAIImageAPI] Chat Completions响应格式异常，可用字段: {list(data.keys())}")
+                empty_image = self._create_empty_image()
+                if empty_image is None:
+                    import torch
+                    empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                return (empty_image, "Chat Completions响应格式不支持")
+                
+        except Exception as e:
+            print(f"[OpenAIImageAPI] Chat Completions响应解析异常: {e}")
+            print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
+            print(f"[OpenAIImageAPI] 响应内容: {resp.text[:500]}...")
+            empty_image = self._create_empty_image()
+            if empty_image is None:
+                import torch
+                empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+            return (empty_image, f"Chat Completions响应解析失败: {e}")
+
     def _handle_async_response(self, initial_data, headers, api_url):
         """
         处理异步响应，轮询等待结果
@@ -647,7 +915,7 @@ class OpenAIImageAPI:
         """
         import time
         try:
-            tasks_url = f"{base_url.rstrip('/')}/tasks/{task_id}"
+            tasks_url = f"https://api-inference.modelscope.cn/v1/tasks/{task_id}"
             headers = {
                 "Authorization": f"Bearer {api_key}",
                 "X-ModelScope-Task-Type": "image_generation"
