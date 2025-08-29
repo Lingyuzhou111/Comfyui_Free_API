@@ -29,8 +29,8 @@ class OpenAIImageAPI:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "base_url": ("STRING", {"default": "https://api.openai.com/v1", "multiline": False}),
                 "api_endpoint": (["images/generations", "chat/completions"], {"default": "images/generations"}),
+                "base_url": ("STRING", {"default": "https://api.openai.com/v1", "multiline": False}),
                 "model": ("STRING", {"default": "dall-e-3", "multiline": False}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
                 "user_prompt": ("STRING", {"multiline": True, "default": "生成一只可爱的小猫"}),
@@ -694,8 +694,59 @@ class OpenAIImageAPI:
             try:
                 data = resp.json()
             except json.JSONDecodeError as json_error:
-                print(f"[OpenAIImageAPI] Chat Completions JSON解析失败: {json_error}")
-                print(f"[OpenAIImageAPI] 响应内容: {resp.text[:500]}...")
+                # 尝试解析 OpenRouter 的流式 SSE 文本：逐行读取 "data: {...}" 块并收集 delta.images
+                print(f"[OpenAIImageAPI] Chat Completions JSON解析失败，尝试按SSE流式解析: {json_error}")
+                text = resp.text or ""
+                data_urls = []
+                last_chunk = None
+                for raw_line in text.splitlines():
+                    line = raw_line.strip()
+                    if not line.startswith("data:"):
+                        continue
+                    payload = line[5:].strip()
+                    if not payload or payload == "[DONE]":
+                        continue
+                    try:
+                        chunk = json.loads(payload)
+                        last_chunk = chunk
+                    except Exception as e:
+                        continue
+                    choices = chunk.get("choices") or []
+                    for ch in choices:
+                        delta = ch.get("delta") or {}
+                        images = delta.get("images") or []
+                        if isinstance(images, list):
+                            for img_entry in images:
+                                url = None
+                                if isinstance(img_entry, dict):
+                                    if img_entry.get("image_url"):
+                                        iu = img_entry.get("image_url")
+                                        if isinstance(iu, dict):
+                                            url = iu.get("url") or iu.get("data")
+                                        elif isinstance(iu, str):
+                                            url = iu
+                                    url = url or img_entry.get("url") or img_entry.get("data") or img_entry.get("b64_json") or img_entry.get("base64")
+                                if isinstance(url, str) and url.startswith("data:image/") and ";base64," in url:
+                                    data_urls.append(url)
+                if data_urls:
+                    try:
+                        full_data_url = data_urls[0]
+                        b64_part = full_data_url.split(",", 1)[1]
+                        image_bytes = base64.b64decode(b64_part)
+                        pil_image = Image.open(BytesIO(image_bytes))
+                        comfyui_image = self._pil_to_comfyui(pil_image)
+                        if comfyui_image is None:
+                            import torch
+                            comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                        # 构造最小生成信息（无完整JSON时）
+                        minimal_info = last_chunk if isinstance(last_chunk, dict) else {"object": "chat.completion.chunk"}
+                        generation_info = self._format_generation_info(minimal_info, "inline_base64")
+                        print(f"[OpenAIImageAPI] SSE流式解析到图片并转换成功: 尺寸={pil_image.size}")
+                        return (comfyui_image, generation_info)
+                    except Exception as e:
+                        print(f"[OpenAIImageAPI] SSE流式图片解析失败: {e}")
+                # 若SSE也未解析出图片，按原行为返回格式错误
+                print(f"[OpenAIImageAPI] SSE流式解析未发现图片，返回格式错误。")
                 empty_image = self._create_empty_image()
                 if empty_image is None:
                     import torch
@@ -724,51 +775,157 @@ class OpenAIImageAPI:
                 attachments = message.get("attachments") or message.get("experimental_attachments")
                 
                 if attachments and len(attachments) > 0:
-                    # 找到生成的图像URL
-                    image_url = attachments[0].get("url")
-                    if image_url:
-                        print(f"[OpenAIImageAPI] 从Chat Completions响应中找到图像URL: {image_url}")
-                        try:
-                            # 下载图像
+                    # 优先尝试处理每个附件中的 url 或 base64 字段
+                    try:
+                        att = attachments[0]
+                        image_url = att.get("url")
+                        if image_url:
+                            print(f"[OpenAIImageAPI] 从Chat Completions响应中找到图像URL: {image_url}")
                             img_resp = requests.get(image_url, timeout=30)
                             img_resp.raise_for_status()
                             pil_image = Image.open(BytesIO(img_resp.content))
                             print(f"[OpenAIImageAPI] Chat Completions图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
-                            
-                            # 转换为ComfyUI格式
-                            comfyui_image = self._pil_to_comfyui(pil_image)
-                            if comfyui_image is None:
-                                print(f"[OpenAIImageAPI] ComfyUI格式转换失败，使用空图像")
-                                import torch
-                                comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                        else:
+                            # 常见base64字段名适配
+                            b64_data = att.get("b64_json") or att.get("base64") or att.get("image_base64") or att.get("data") or att.get("content")
+                            if isinstance(b64_data, dict):
+                                # 兼容结构化字段，如 {"data":"data:image/png;base64,..."}
+                                b64_data = b64_data.get("data") or b64_data.get("b64_json") or b64_data.get("base64")
+                            if b64_data:
+                                print(f"[OpenAIImageAPI] 从attachments中发现base64数据，长度: {len(str(b64_data))}")
+                                if isinstance(b64_data, str) and b64_data.startswith('data:image/'):
+                                    b64_data = b64_data.split(',', 1)[1]
+                                image_bytes = base64.b64decode(b64_data)
+                                pil_image = Image.open(BytesIO(image_bytes))
+                                image_url = "inline_base64"
+                                print(f"[OpenAIImageAPI] attachments base64图像解析成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
                             else:
-                                print(f"[OpenAIImageAPI] Chat Completions ComfyUI格式转换成功: 形状={comfyui_image.shape}")
-                            
-                            # 格式化生成信息
-                            generation_info = self._format_generation_info(data, image_url)
-                            print(f"[OpenAIImageAPI] Chat Completions生成信息: {generation_info}")
-                            
-                            return (comfyui_image, generation_info)
-                            
-                        except Exception as e:
-                            print(f"[OpenAIImageAPI] Chat Completions图像下载失败: {e}")
-                            empty_image = self._create_empty_image()
-                            if empty_image is None:
-                                import torch
-                                empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
-                            return (empty_image, f"Chat Completions图像下载失败: {e}")
-                    else:
-                        print(f"[OpenAIImageAPI] Chat Completions响应中未找到图像URL")
+                                raise ValueError("attachments中未找到url或base64字段")
+
+                        # 转换为ComfyUI格式
+                        comfyui_image = self._pil_to_comfyui(pil_image)
+                        if comfyui_image is None:
+                            print(f"[OpenAIImageAPI] ComfyUI格式转换失败，使用空图像")
+                            import torch
+                            comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                        else:
+                            print(f"[OpenAIImageAPI] Chat Completions ComfyUI格式转换成功: 形状={comfyui_image.shape}")
+                        
+                        # 格式化生成信息
+                        generation_info = self._format_generation_info(data, image_url)
+                        print(f"[OpenAIImageAPI] Chat Completions生成信息: {generation_info}")
+                        
+                        return (comfyui_image, generation_info)
+                    except Exception as e:
+                        print(f"[OpenAIImageAPI] 处理attachments中的图像数据失败: {e}")
                         empty_image = self._create_empty_image()
                         if empty_image is None:
                             import torch
                             empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
-                        return (empty_image, "Chat Completions响应中未找到图像URL")
+                        return (empty_image, f"Chat Completions附件图像解析失败: {e}")
                 else:
+                    # 优先尝试解析 message.images（如 OpenRouter Gemini 返回）
+                    images_list = message.get("images") or []
+                    if isinstance(images_list, list) and len(images_list) > 0:
+                        try:
+                            img_entry = images_list[0]
+                            url_or_data = None
+                            if isinstance(img_entry, dict):
+                                if img_entry.get("image_url"):
+                                    iu = img_entry.get("image_url")
+                                    if isinstance(iu, dict) and iu.get("url"):
+                                        url_or_data = iu.get("url")
+                                    else:
+                                        url_or_data = iu
+                                if not url_or_data:
+                                    url_or_data = img_entry.get("url") or img_entry.get("data") or img_entry.get("b64_json") or img_entry.get("base64")
+
+                            if not url_or_data:
+                                raise ValueError("images[0] 未包含可识别的url或base64字段")
+
+                            if isinstance(url_or_data, str) and url_or_data.startswith("http"):
+                                img_resp = requests.get(url_or_data, timeout=30)
+                                img_resp.raise_for_status()
+                                pil_image = Image.open(BytesIO(img_resp.content))
+                                image_url = url_or_data
+                            else:
+                                b64_data = url_or_data
+                                if isinstance(b64_data, dict):
+                                    b64_data = b64_data.get("data") or b64_data.get("b64_json") or b64_data.get("base64")
+                                if not isinstance(b64_data, str):
+                                    raise ValueError("images[0] base64字段不是字符串")
+                                if b64_data.startswith('data:image/'):
+                                    b64_data = b64_data.split(',', 1)[1]
+                                image_bytes = base64.b64decode(b64_data)
+                                pil_image = Image.open(BytesIO(image_bytes))
+                                image_url = "inline_base64"
+
+                            comfyui_image = self._pil_to_comfyui(pil_image)
+                            if comfyui_image is None:
+                                import torch
+                                comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                            generation_info = self._format_generation_info(data, image_url)
+                            return (comfyui_image, generation_info)
+                        except Exception as e:
+                            print(f"[OpenAIImageAPI] 解析message.images失败: {e}")
+                            # 不中断，继续尝试从content中提取
+
                     # 检查消息内容是否包含图像信息
                     content = message.get("content", "")
                     print(f"[OpenAIImageAPI] Chat Completions消息内容: {content[:200]}...")
                     
+                    # content 可能是字符串或结构化数组，先做结构化兼容
+                    if isinstance(content, list):
+                        # 兼容 openai 格式 [{type: image_url, image_url: {url: ...}}, {type: text, text: ...}]
+                        for part in content:
+                            try:
+                                if isinstance(part, dict):
+                                    if part.get("type") == "image_url":
+                                        iu = part.get("image_url")
+                                        u = None
+                                        if isinstance(iu, dict):
+                                            u = iu.get("url") or iu.get("data")
+                                        elif isinstance(iu, str):
+                                            u = iu
+                                        if u:
+                                            print(f"[OpenAIImageAPI] 从结构化content中找到URL: {u}")
+                                            if isinstance(u, str) and u.startswith('data:image/'):
+                                                payload = u.split(',', 1)[1] if ',' in u else u
+                                                image_bytes = base64.b64decode(payload)
+                                                pil_image = Image.open(BytesIO(image_bytes))
+                                                src_hint = "inline_base64"
+                                            else:
+                                                img_resp = requests.get(u, timeout=30)
+                                                img_resp.raise_for_status()
+                                                pil_image = Image.open(BytesIO(img_resp.content))
+                                                src_hint = u
+                                            comfyui_image = self._pil_to_comfyui(pil_image)
+                                            if comfyui_image is None:
+                                                import torch
+                                                comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                                            generation_info = self._format_generation_info(data, src_hint)
+                                            return (comfyui_image, generation_info)
+                                    # 可能返回 base64 data url
+                                    if part.get("type") in ("image", "image_base64"):
+                                        b64_data = part.get("data") or part.get("base64") or part.get("b64_json")
+                                        if isinstance(b64_data, str):
+                                            if b64_data.startswith('data:image/'):
+                                                payload = b64_data.split(',', 1)[1]
+                                            else:
+                                                payload = b64_data
+                                            image_bytes = base64.b64decode(payload)
+                                            pil_image = Image.open(BytesIO(image_bytes))
+                                            comfyui_image = self._pil_to_comfyui(pil_image)
+                                            if comfyui_image is None:
+                                                import torch
+                                                comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                                            generation_info = self._format_generation_info(data, "inline_base64")
+                                            return (comfyui_image, generation_info)
+                            except Exception as e:
+                                print(f"[OpenAIImageAPI] 解析结构化content失败，跳过该部分: {e}")
+                        # 若结构化未命中，继续按字符串方式尝试
+                        content = json.dumps(content, ensure_ascii=False)
+
                     # 尝试从内容中提取图像URL（某些平台可能在文本中返回URL）
                     # 首先尝试提取Markdown格式的图像链接 ![alt](url)
                     markdown_pattern = r'!\[.*?\]\((https?://[^)]+\.(?:jpg|jpeg|png|gif|webp|bmp)[^)]*)\)'
@@ -813,11 +970,51 @@ class OpenAIImageAPI:
                                 empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
                             return (empty_image, f"提取URL图像下载失败: {e}")
                     else:
-                        empty_image = self._create_empty_image()
-                        if empty_image is None:
-                            import torch
-                            empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
-                        return (empty_image, f"Chat Completions响应中未找到图像数据: {content[:100]}...")
+                        # 尝试匹配 data URL 中的 base64 图片
+                        dataurl_pattern = r'(data:image\/(?:png|jpeg|jpg|webp|gif|bmp);base64,([A-Za-z0-9+\/=]+))'
+                        data_urls = re.findall(dataurl_pattern, content, re.IGNORECASE)
+                        if data_urls:
+                            try:
+                                full_data, b64_part = data_urls[0]
+                                print(f"[OpenAIImageAPI] 从文本中提取到data URL base64，长度: {len(b64_part)}")
+                                image_bytes = base64.b64decode(b64_part)
+                                pil_image = Image.open(BytesIO(image_bytes))
+                                comfyui_image = self._pil_to_comfyui(pil_image)
+                                if comfyui_image is None:
+                                    import torch
+                                    comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                                generation_info = self._format_generation_info(data, "inline_base64")
+                                return (comfyui_image, generation_info)
+                            except Exception as e:
+                                print(f"[OpenAIImageAPI] data URL base64解析失败: {e}")
+                        
+                        # 兜底：尝试从文本中提取长base64段并尝试作为图片解码
+                        try:
+                            candidate_pattern = r'([A-Za-z0-9+\/=]{200,})'
+                            candidates = re.findall(candidate_pattern, content)
+                            print(f"[OpenAIImageAPI] 发现潜在base64段数量: {len(candidates)}")
+                            for cand in candidates:
+                                try:
+                                    image_bytes = base64.b64decode(cand)
+                                    pil = Image.open(BytesIO(image_bytes))
+                                    pil.load()
+                                    print(f"[OpenAIImageAPI] 纯base64图片解析成功: 尺寸={pil.size}, 模式={pil.mode}")
+                                    comfyui_image = self._pil_to_comfyui(pil)
+                                    if comfyui_image is None:
+                                        import torch
+                                        comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                                    generation_info = self._format_generation_info(data, "inline_base64")
+                                    return (comfyui_image, generation_info)
+                                except Exception:
+                                    continue
+                        except Exception as e:
+                            print(f"[OpenAIImageAPI] 纯base64兜底解析失败: {e}")
+                    # 若上述多种方式均未解析成功，返回空图像
+                    empty_image = self._create_empty_image()
+                    if empty_image is None:
+                        import torch
+                        empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                    return (empty_image, f"Chat Completions响应中未找到图像数据: {content[:100]}...")
             else:
                 print(f"[OpenAIImageAPI] Chat Completions响应格式异常，可用字段: {list(data.keys())}")
                 empty_image = self._create_empty_image()
