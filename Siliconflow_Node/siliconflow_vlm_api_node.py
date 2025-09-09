@@ -17,20 +17,37 @@ class SiliconflowVLMAPI:
     输出：answer（最终答案）, reasoning_content（思考过程）, tokens_usage（API用量信息）
     """
     def __init__(self):
-        # 读取配置文件，专门读取VLM.siliconflow_vlm配置
+        # 读取配置文件，容错匹配 VLM 下的提供方（优先“硅基流动”，否则回退到第一个含 model 列表的提供方）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            self.config = config.get('VLM', {}).get('siliconflow_vlm', {})
+            cfg_all = json.load(f)
+        vlm = cfg_all.get('VLM', {}) or {}
+        provider_key = None
+        if "硅基流动" in vlm and isinstance(vlm["硅基流动"], dict):
+            provider_key = "硅基流动"
+        else:
+            for k, v in vlm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    provider_key = k
+                    break
+        self.config = vlm.get(provider_key, {})
 
     @classmethod
     def INPUT_TYPES(cls):
-        # 动态读取Siliconflow模型选项
+        # 动态读取模型选项（容错匹配“硅基流动”，否则回退到第一个包含 model 列表的提供方）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            siliconflow_config = config.get('VLM', {}).get('siliconflow_vlm', {})
-        model_options = siliconflow_config.get('model', ['THUDM/GLM-4.1V-9B-Thinking'])
+            cfg_all = json.load(f)
+        vlm = cfg_all.get('VLM', {}) or {}
+        selected = {}
+        if "硅基流动" in vlm and isinstance(vlm["硅基流动"], dict):
+            selected = vlm["硅基流动"]
+        else:
+            for k, v in vlm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    selected = v
+                    break
+        model_options = selected.get('model', ['THUDM/GLM-4.1V-9B-Thinking'])
         return {
             "required": {
                 "image": ("IMAGE",),
@@ -46,7 +63,7 @@ class SiliconflowVLMAPI:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("reasoning_content", "answer", "tokens_usage")
     FUNCTION = "infer"
-    CATEGORY = "API/Siliconflow"
+    CATEGORY = "🦉FreeAPI/Siliconflow"
 
     def infer(self, image, model, max_tokens, temperature, top_p, system_prompt, user_prompt):
         """
@@ -61,7 +78,7 @@ class SiliconflowVLMAPI:
         api_key = self.config.get('api_key', '')
         
         if not api_key:
-            return ("", "", "错误：未配置Siliconflow API Key，请在config.json中设置siliconflow_vlm.api_key")
+            return ("", "", "错误：未配置Siliconflow API Key，请在config.json的 VLM 部分对应提供方下设置 api_key（例如“硅基流动”.api_key）")
         
         # 1. 图片转base64
         try:
@@ -207,5 +224,5 @@ NODE_CLASS_MAPPINGS = {
     "Siliconflow_VLM_API": SiliconflowVLMAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Siliconflow_VLM_API": "Siliconflow VLM API节点"
+    "Siliconflow_VLM_API": "🦉Siliconflow VLM API节点"
 } 
