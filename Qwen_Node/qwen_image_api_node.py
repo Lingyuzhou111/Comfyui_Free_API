@@ -71,7 +71,7 @@ class QwenImageAPI:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING",)
     RETURN_NAMES = ("image", "image_url", "generation_info",)
     FUNCTION = "generate_image"
-    CATEGORY = "API/Qwen"
+    CATEGORY = "🦉FreeAPI/Qwen"
 
     def generate_image(self, model, size, prompt, prompt_extend, negative_prompt=None, seed=None, n=1, watermark=False):
         """
@@ -452,5 +452,5 @@ NODE_CLASS_MAPPINGS = {
     "Qwen_Image_API": QwenImageAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Qwen_Image_API": "Qwen Image API节点"
+    "Qwen_Image_API": "🦉Qwen Image API节点"
 } 

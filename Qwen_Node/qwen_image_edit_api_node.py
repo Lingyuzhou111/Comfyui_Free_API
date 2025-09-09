@@ -46,7 +46,7 @@ class QwenImageEditAPI:
     RETURN_TYPES = ("IMAGE", "STRING", "STRING",)
     RETURN_NAMES = ("image", "image_url", "edit_info",)
     FUNCTION = "edit_image"
-    CATEGORY = "API/Qwen"
+    CATEGORY = "🦉FreeAPI/Qwen"
 
     def edit_image(self, prompt, image, negative_prompt="", prompt_extend=True, watermark=False):
         """
@@ -257,5 +257,5 @@ NODE_CLASS_MAPPINGS = {
     "Qwen_ImageEdit_API": QwenImageEditAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Qwen_ImageEdit_API": "Qwen Image Edit API节点"
+    "Qwen_ImageEdit_API": "🦉Qwen Image Edit API节点"
 }

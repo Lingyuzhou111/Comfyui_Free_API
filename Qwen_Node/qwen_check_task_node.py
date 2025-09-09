@@ -62,7 +62,7 @@ class QwenCheckTaskAPI:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("generation_info",)
     FUNCTION = "check_task_status"
-    CATEGORY = "API/Qwen"
+    CATEGORY = "🦉FreeAPI/Qwen"
 
     def check_task_status(self, task_id, auto_refresh=False, refresh_interval=5, max_refresh_count=10):
         """
@@ -327,5 +327,5 @@ NODE_CLASS_MAPPINGS = {
     "Qwen_Check_Task_API": QwenCheckTaskAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Qwen_Check_Task_API": "Qwen任务状态查询节点"
+    "Qwen_Check_Task_API": "🦉Qwen任务状态查询节点"
 } 
