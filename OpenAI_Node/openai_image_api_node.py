@@ -48,7 +48,7 @@ class OpenAIImageAPI:
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("image", "generation_info")
     FUNCTION = "generate_image"
-    CATEGORY = "API/OpenAI"
+    CATEGORY = "🦉FreeAPI/OpenAI"
 
     def generate_image(self, base_url, model, api_key, user_prompt, size, num_images, api_endpoint, image1=None, image2=None, image3=None, image4=None):
         """
@@ -287,14 +287,14 @@ class OpenAIImageAPI:
                 print(f"[OpenAIImageAPI] 文生图模式: 纯文本提示词生成")
             
             # 构建请求载荷（参考lmarena-api.js的格式）
+            # 移除 temperature 和 max_tokens，避免触发不必要的、可能因UI变化而失败的页面交互
+            # 让代理服务器使用AI Studio页面的默认值
             payload = {
                 "model": model,
                 "messages": [{
                     "role": "user",
                     "content": content
-                }],
-                "max_tokens": 1000,
-                "temperature": 0.7
+                }]
             }
             
             # 发送请求
@@ -1410,5 +1410,5 @@ NODE_CLASS_MAPPINGS = {
     "OpenAI_Image_API": OpenAIImageAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OpenAI_Image_API": "OpenAI兼容Image API节点"
+    "OpenAI_Image_API": "🦉OpenAI兼容Image API节点"
 } 

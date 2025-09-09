@@ -38,7 +38,7 @@ class OpenAIChatAPI:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("reasoning_content", "answer", "tokens_usage")
     FUNCTION = "chat"
-    CATEGORY = "API/OpenAI"
+    CATEGORY = "🦉FreeAPI/OpenAI"
 
     def chat(self, base_url, model, api_key, system_prompt, user_prompt, max_tokens, temperature, top_p, image=None):
         """
@@ -344,5 +344,5 @@ NODE_CLASS_MAPPINGS = {
     "OpenAI_Chat_API": OpenAIChatAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OpenAI_Chat_API": "OpenAI兼容Chat API节点"
+    "OpenAI_Chat_API": "🦉OpenAI兼容Chat API节点"
 } 
