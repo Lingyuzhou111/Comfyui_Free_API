@@ -45,7 +45,7 @@ class GeminiImageAPI:
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("image", "tokens_usage")
     FUNCTION = "generate_image"
-    CATEGORY = "API/Gemini"
+    CATEGORY = "🦉FreeAPI/Gemini"
 
     def generate_image(self, prompt, model, image1=None, image2=None, image3=None, image4=None):
         """
@@ -536,5 +536,5 @@ NODE_CLASS_MAPPINGS = {
     "Gemini_Image_API": GeminiImageAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Gemini_Image_API": "Gemini图像API节点"
+    "Gemini_Image_API": "🦉Gemini图像API节点"
 } 

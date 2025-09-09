@@ -15,20 +15,37 @@ class GeminiVLMAPI:
     输出：answer（最终答案）, reasoning_content（思考过程）, tokens_usage（API用量信息）
     """
     def __init__(self):
-        # 读取配置文件，专门读取VLM.gemini_vlm配置
+        # 读取配置文件，容错匹配 VLM 下的提供方（优先“谷歌官方”，否则回退到第一个含 model 列表的提供方）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            self.config = config.get('VLM', {}).get('gemini_vlm', {})
+            cfg_all = json.load(f)
+        vlm = cfg_all.get('VLM', {}) or {}
+        provider_key = None
+        if "谷歌官方" in vlm and isinstance(vlm["谷歌官方"], dict):
+            provider_key = "谷歌官方"
+        else:
+            for k, v in vlm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    provider_key = k
+                    break
+        self.config = vlm.get(provider_key, {})
 
     @classmethod
     def INPUT_TYPES(cls):
-        # 动态读取Gemini模型选项
+        # 动态读取模型选项（容错匹配“谷歌官方”，否则回退到第一个包含 model 列表的提供方）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            gemini_config = config.get('VLM', {}).get('gemini_vlm', {})
-        model_options = gemini_config.get('model', ['gemini-2.5-flash'])
+            cfg_all = json.load(f)
+        vlm = cfg_all.get('VLM', {}) or {}
+        selected = {}
+        if "谷歌官方" in vlm and isinstance(vlm["谷歌官方"], dict):
+            selected = vlm["谷歌官方"]
+        else:
+            for k, v in vlm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    selected = v
+                    break
+        model_options = selected.get('model', ['gemini-2.5-flash'])
         return {
             "required": {
                 "image": ("IMAGE",),
@@ -44,7 +61,7 @@ class GeminiVLMAPI:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("reasoning_content", "answer", "tokens_usage")
     FUNCTION = "infer"
-    CATEGORY = "API/Gemini"
+    CATEGORY = "🦉FreeAPI/Gemini"
 
     def infer(self, image, model, max_tokens, temperature, top_p, system_prompt, user_prompt):
         """
@@ -59,7 +76,7 @@ class GeminiVLMAPI:
         api_key = self.config.get('api_key', '')
         
         if not api_key:
-            return ("", "", "错误：未配置Gemini API Key，请在config.json中设置gemini_vlm.api_key")
+            return ("", "", "错误：未配置Gemini API Key，请在config.json的 VLM 部分对应提供方下设置 api_key（例如“谷歌官方”.api_key）")
         
         # 1. 图片转base64
         try:
@@ -221,5 +238,5 @@ NODE_CLASS_MAPPINGS = {
     "Gemini_VLM_API": GeminiVLMAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Gemini_VLM_API": "Gemini VLM API节点"
+    "Gemini_VLM_API": "🦉Gemini VLM API节点"
 } 
