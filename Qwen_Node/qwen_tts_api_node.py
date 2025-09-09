@@ -61,7 +61,7 @@ class QwenTTSAPI:
     RETURN_TYPES = ("AUDIO", "STRING", "STRING" )
     RETURN_NAMES = ("audio", "audio_url", "generation_info")
     FUNCTION = "generate_speech"
-    CATEGORY = "API/Qwen"
+    CATEGORY = "🦉FreeAPI/Qwen"
 
     def _extract_voice_name(self, voice_option):
         """
@@ -328,5 +328,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Qwen_TTS_API": "Qwen TTS API节点"
+    "Qwen_TTS_API": "🦉Qwen TTS API节点"
 }

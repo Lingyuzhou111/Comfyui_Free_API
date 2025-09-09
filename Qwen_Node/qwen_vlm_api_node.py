@@ -20,20 +20,37 @@ class QwenVLMAPI:
     输出：reasoning_content（思考过程）, answer（最终答案）, tokens_usage（API用量信息）
     """
     def __init__(self):
-        # 读取配置文件，专门读取VLM.qwen_vlm配置
+        # 读取配置文件，容错匹配 VLM 下的提供方（支持重命名为“千问百炼”等）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            self.config = config.get('VLM', {}).get('qwen_vlm', {})
+            cfg_all = json.load(f)
+        vlm = cfg_all.get('VLM', {}) or {}
+        provider_key = None
+        if "千问百炼" in vlm and isinstance(vlm["千问百炼"], dict):
+            provider_key = "千问百炼"
+        else:
+            for k, v in vlm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    provider_key = k
+                    break
+        self.config = vlm.get(provider_key, {})
 
     @classmethod
     def INPUT_TYPES(cls):
-        # 动态读取Qwen模型选项
+        # 动态读取模型选项（容错匹配提供方）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            qwen_config = config.get('VLM', {}).get('qwen_vlm', {})
-        model_options = qwen_config.get('model', ['qwen-omni-turbo-latest'])
+            cfg_all = json.load(f)
+        vlm = cfg_all.get('VLM', {}) or {}
+        selected = {}
+        if "千问百炼" in vlm and isinstance(vlm["千问百炼"], dict):
+            selected = vlm["千问百炼"]
+        else:
+            for k, v in vlm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    selected = v
+                    break
+        model_options = selected.get('model', ['qwen-omni-turbo-latest'])
         return {
             "required": {
                 "image": ("IMAGE",),
@@ -50,7 +67,7 @@ class QwenVLMAPI:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("reasoning_content", "answer", "tokens_usage")
     FUNCTION = "infer"
-    CATEGORY = "API/Qwen"
+    CATEGORY = "🦉FreeAPI/Qwen"
 
     def infer(self, image, model, max_tokens, temperature, top_p, system_prompt, user_prompt, stream=False):
         """
@@ -64,7 +81,7 @@ class QwenVLMAPI:
         api_key = self.config.get('api_key', '')
         
         if not api_key:
-            return ("", "错误：未配置Qwen API Key，请在config.json中设置qwen_vlm.api_key", "")
+            return ("", "错误：未配置Qwen API Key，请在config.json的 VLM 部分对应提供方下设置 api_key（例如“千问百炼”.api_key）", "")
         
         # 1. 图片转base64
         try:
@@ -225,5 +242,5 @@ NODE_CLASS_MAPPINGS = {
     "Qwen_VLM_API": QwenVLMAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Qwen_VLM_API": "Qwen VLM API节点"
+    "Qwen_VLM_API": "🦉Qwen VLM API节点"
 } 

@@ -66,7 +66,7 @@ class QwenVideoAPI:
     RETURN_TYPES = ("VIDEO", "STRING", "STRING",)
     RETURN_NAMES = ("video", "video_url", "generation_info",)
     FUNCTION = "generate_video"
-    CATEGORY = "API/Qwen"
+    CATEGORY = "🦉FreeAPI/Qwen"
 
     def generate_video(self, model, resolution, ratio, prompt, prompt_extend, seed=None, duration=5, watermark=False, first_frame_image=None, last_frame_image=None):
         """
@@ -561,5 +561,5 @@ NODE_CLASS_MAPPINGS = {
     "Qwen_Video_API": QwenVideoAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Qwen_Video_API": "Qwen Video API节点"
+    "Qwen_Video_API": "🦉Qwen Video API节点"
 } 

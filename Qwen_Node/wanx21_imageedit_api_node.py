@@ -65,7 +65,7 @@ class Wanx21ImageEditAPI:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
     FUNCTION = "edit_image"
-    CATEGORY = "API/Qwen"
+    CATEGORY = "🦉FreeAPI/Qwen"
 
     def edit_image(self, prompt, function, image, strength, mask=None, top_scale=None, bottom_scale=None, left_scale=None, right_scale=None, upscale_factor=None):
         """
@@ -345,5 +345,5 @@ NODE_CLASS_MAPPINGS = {
     "Wanx2.1_ImageEdit_API": Wanx21ImageEditAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Wanx2.1_ImageEdit_API": "Wanx2.1 Image Edit API节点"
+    "Wanx2.1_ImageEdit_API": "🦉Wanx2.1 Image Edit API节点"
 } 
