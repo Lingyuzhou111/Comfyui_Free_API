@@ -20,6 +20,8 @@
 
 > **250819** ：新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
 
+> **250909** ：新增LLM Prompt Enhance和VLM Prompt Enhance节点支持预设提示增强功能
+
 ## 📖 示例工作流
 
 #### LLM API工作流
@@ -62,6 +64,12 @@
 
 ####  新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
 <img width="2165" height="888" alt="wechat_2025-08-19_172109_520" src="https://github.com/user-attachments/assets/d205a80a-2d42-4062-a8ce-b09b4435cb2d" />
+
+####  新增LLM Prompt Enhance和VLM Prompt Enhance节点支持预设提示增强功能
+<img width="1825" height="1128" alt="b566b6f819bf68a377ac0fb2519f78d0" src="https://github.com/user-attachments/assets/5d77442d-a308-4dc0-8489-9c52d575a45a" />
+<img width="1836" height="1205" alt="2df8b526c32ecdd4d20bacd7454a4c05" src="https://github.com/user-attachments/assets/3d97deeb-2406-4e6f-8e4b-b3c6d6aa119b" />
+
+
 
 ## 🚀 功能特性 
 
@@ -193,6 +201,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
