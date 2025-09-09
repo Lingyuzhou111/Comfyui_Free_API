@@ -119,7 +119,7 @@ class SiliconflowTTSAPI:
     RETURN_TYPES = ("AUDIO", "STRING", "STRING")
     RETURN_NAMES = ("audio", "audio_url", "generation_info")
     FUNCTION = "generate_speech"
-    CATEGORY = "API/Siliconflow"
+    CATEGORY = "🦉FreeAPI/Siliconflow"
 
     def _create_audio_tensor_from_binary(self, audio_binary: bytes, sample_rate: int = 32000) -> dict:
         """
@@ -345,5 +345,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Siliconflow_TTS_API": "Siliconflow TTS API节点"
+    "Siliconflow_TTS_API": "🦉Siliconflow TTS API节点"
 }

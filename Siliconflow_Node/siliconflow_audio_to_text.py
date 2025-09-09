@@ -102,7 +102,7 @@ class SiliconflowAudioToText:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text",)
     FUNCTION = "transcribe_audio"
-    CATEGORY = "API/Siliconflow"
+    CATEGORY = "🦉FreeAPI/Siliconflow"
 
     def _audio_tensor_to_wav_file(self, audio_data: dict) -> str:
         """
@@ -295,5 +295,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Siliconflow_Audio_To_Text": "Siliconflow 音频转文字节点"
+    "Siliconflow_Audio_To_Text": "🦉Siliconflow 音频转文字节点"
 }

@@ -101,7 +101,7 @@ class SiliconflowVoiceURIList:
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("uri_list",)
     FUNCTION = "get_voice_list"
-    CATEGORY = "API/Siliconflow"
+    CATEGORY = "🦉FreeAPI/Siliconflow"
 
     def get_voice_list(self, api_key="", force_refresh=False):
         """
@@ -287,5 +287,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Siliconflow_Voice_URI_List": "Siliconflow 自定义音色列表"
+    "Siliconflow_Voice_URI_List": "🦉Siliconflow 自定义音色列表"
 }
