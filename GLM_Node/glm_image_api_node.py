@@ -58,7 +58,7 @@ class GLMImageAPI:
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
     FUNCTION = "generate"
-    CATEGORY = "API/GLM"
+    CATEGORY = "🦉FreeAPI/GLM"
 
     def generate(self, model, quality, size, prompt):
         """
@@ -162,5 +162,5 @@ NODE_CLASS_MAPPINGS = {
     "GLM_Image_API": GLMImageAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GLM_Image_API": "GLM Image API节点"
+    "GLM_Image_API": "🦉GLM Image API节点"
 } 

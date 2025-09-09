@@ -14,20 +14,37 @@ class GLMLLMAPI:
     输出：reasoning_content（思考过程）, answer（最终答案）, tokens_usage（API用量信息）
     """
     def __init__(self):
-        # 读取配置文件，专门读取LLM.glm_llm配置
+        # 读取配置文件，容错匹配 LLM 下的提供方（优先“智谱官方”，否则回退到第一个含 model 列表的提供方）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            self.config = config.get('LLM', {}).get('glm_llm', {})
+            cfg_all = json.load(f)
+        llm = cfg_all.get('LLM', {}) or {}
+        provider_key = None
+        if "智谱官方" in llm and isinstance(llm["智谱官方"], dict):
+            provider_key = "智谱官方"
+        else:
+            for k, v in llm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    provider_key = k
+                    break
+        self.config = llm.get(provider_key, {})
 
     @classmethod
     def INPUT_TYPES(cls):
-        # 动态读取GLM模型选项
+        # 动态读取模型选项（容错匹配“智谱官方”，否则回退到第一个包含 model 列表的提供方）
         config_path = os.path.join(os.path.dirname(__file__), '..', 'config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            glm_config = config.get('LLM', {}).get('glm_llm', {})
-        model_options = glm_config.get('model', ['glm-4-flash-250414'])
+            cfg_all = json.load(f)
+        llm = cfg_all.get('LLM', {}) or {}
+        selected = {}
+        if "智谱官方" in llm and isinstance(llm["智谱官方"], dict):
+            selected = llm["智谱官方"]
+        else:
+            for k, v in llm.items():
+                if isinstance(v, dict) and isinstance(v.get('model'), list):
+                    selected = v
+                    break
+        model_options = selected.get('model', ['glm-4-flash-250414'])
         return {
             "required": {
                 "model": (model_options, {"default": model_options[0]}),
@@ -42,7 +59,7 @@ class GLMLLMAPI:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("reasoning_content", "answer", "tokens_usage")
     FUNCTION = "infer"
-    CATEGORY = "API/GLM"
+    CATEGORY = "🦉FreeAPI/GLM"
 
     def infer(self, model, max_tokens, temperature, top_p, system_prompt, user_prompt):
         """
@@ -54,7 +71,7 @@ class GLMLLMAPI:
         api_key = self.config.get('api_key', '')
         
         if not api_key:
-            return ("", "错误：未配置GLM API Key，请在config.json中设置glm_llm.api_key", "")
+            return ("", "错误：未配置GLM API Key，请在config.json的 LLM 部分对应提供方下设置 api_key（例如“智谱官方”.api_key）", "")
         
         # 构造API请求
         messages = []
@@ -172,5 +189,5 @@ NODE_CLASS_MAPPINGS = {
     "GLM_LLM_API": GLMLLMAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "GLM_LLM_API": "GLM LLM API节点"
+    "GLM_LLM_API": "🦉GLM LLM API节点"
 } 
