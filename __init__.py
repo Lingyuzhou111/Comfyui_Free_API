@@ -207,6 +207,33 @@ except ImportError as e:
     GEMINI_IMAGE_NODE_MAPPINGS = {}
     GEMINI_IMAGE_DISPLAY_MAPPINGS = {}    
 
+# 导入Prompt Enhance - LLM节点
+try:
+    from Prompt_Enhance_Node.llm_prompt_enhance_node import NODE_CLASS_MAPPINGS as PROMPT_ENHANCE_LLM_NODE_MAPPINGS
+    from Prompt_Enhance_Node.llm_prompt_enhance_node import NODE_DISPLAY_NAME_MAPPINGS as PROMPT_ENHANCE_LLM_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Prompt_Enhance_Node.llm_prompt_enhance_node: {e}")
+    PROMPT_ENHANCE_LLM_NODE_MAPPINGS = {}
+    PROMPT_ENHANCE_LLM_DISPLAY_MAPPINGS = {}
+
+# 导入Prompt Enhance - VLM节点
+try:
+    from Prompt_Enhance_Node.vlm_prompt_enhance_node import NODE_CLASS_MAPPINGS as PROMPT_ENHANCE_VLM_NODE_MAPPINGS
+    from Prompt_Enhance_Node.vlm_prompt_enhance_node import NODE_DISPLAY_NAME_MAPPINGS as PROMPT_ENHANCE_VLM_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Prompt_Enhance_Node.vlm_prompt_enhance_node: {e}")
+    PROMPT_ENHANCE_VLM_NODE_MAPPINGS = {}
+    PROMPT_ENHANCE_VLM_DISPLAY_MAPPINGS = {}
+
+# 导入Prompt Enhance - 预设加载节点
+try:
+    from Prompt_Enhance_Node.load_preset_prompt import NODE_CLASS_MAPPINGS as LOAD_PRESET_PROMPT_NODE_MAPPINGS
+    from Prompt_Enhance_Node.load_preset_prompt import NODE_DISPLAY_NAME_MAPPINGS as LOAD_PRESET_PROMPT_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Prompt_Enhance_Node.load_preset_prompt: {e}")
+    LOAD_PRESET_PROMPT_NODE_MAPPINGS = {}
+    LOAD_PRESET_PROMPT_DISPLAY_MAPPINGS = {}
+
 # 合并所有节点的映射
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -299,5 +326,17 @@ NODE_DISPLAY_NAME_MAPPINGS.update(OPENAI_CHAT_DISPLAY_MAPPINGS)
 NODE_CLASS_MAPPINGS.update(OPENAI_IMAGE_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(OPENAI_IMAGE_DISPLAY_MAPPINGS)
 
+# 添加Prompt Enhance - LLM节点
+NODE_CLASS_MAPPINGS.update(PROMPT_ENHANCE_LLM_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(PROMPT_ENHANCE_LLM_DISPLAY_MAPPINGS)
+
+# 添加Prompt Enhance - VLM节点
+NODE_CLASS_MAPPINGS.update(PROMPT_ENHANCE_VLM_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(PROMPT_ENHANCE_VLM_DISPLAY_MAPPINGS)
+
+# 添加Prompt Enhance - 预设加载节点
+NODE_CLASS_MAPPINGS.update(LOAD_PRESET_PROMPT_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(LOAD_PRESET_PROMPT_DISPLAY_MAPPINGS)
+
 # 导出节点映射，供ComfyUI使用
-__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS'] 
+__all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
