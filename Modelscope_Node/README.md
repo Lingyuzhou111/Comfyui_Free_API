@@ -69,6 +69,11 @@ ModelScope Image API 节点是一个适配 ComfyUI 的自定义节点，用于�
 1. **登录魔搭网站**：访问 https://www.modelscope.cn 并登录
 2. **获取 Cookie**：在浏览器开发者工具中复制所有 cookie
 3. **获取 CSRF Token**：在开发者工具中找到 `csrf_token` 的值
+```
+#快捷模式
+1.点进AIGC专区➡️图片生成➡️ctrl+shift+i(相当于F12)进入开发者模式➡️随便画一张图，找到右边的quicksubmit标签右键复制为cRUL(bash)
+2.然后把上面的ms_config.json和curl信息打包扔给AI，让它帮你自动填好
+```
 
 ## 使用方法
 
