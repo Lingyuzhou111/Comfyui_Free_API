@@ -70,9 +70,13 @@ ModelScope Image API 节点是一个适配 ComfyUI 的自定义节点，用于�
 2. **获取 Cookie**：在浏览器开发者工具中复制所有 cookie
 3. **获取 CSRF Token**：在开发者工具中找到 `csrf_token` 的值
 ```
-#快捷模式
-1.点进AIGC专区➡️图片生成➡️ctrl+shift+i(相当于F12)进入开发者模式➡️随便画一张图，找到右边的quicksubmit标签右键复制为cRUL(bash)
+**快捷模式**
+1.点进AIGC专区➡️图片生成➡️ctrl+shift+i(相当于F12)进入开发者模式➡️随便画一张图，右边选择"网络"然后找到quicksubmit或者submit标签，右键复制为cRUL(bash)
 2.然后把上面的ms_config.json和curl信息打包扔给AI，让它帮你自动填好
+
+**添加自定义lora**
+1.跟上面差不多，点进AIGC专区➡️找到心仪的lora,点击一键生成➡️ctrl+shift+i(相当于F12)进入开发者模式➡️随便画一张图，找到右边的submit标签，右键复制为cRUL(bash)
+2.找到里面的modelVersionId所对应的6位数字，按照ms_config.json同样的格式填入即可
 ```
 
 ## 使用方法
