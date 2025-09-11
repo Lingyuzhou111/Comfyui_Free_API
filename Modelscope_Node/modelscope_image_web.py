@@ -219,15 +219,19 @@ class ModelScopeImageWeb:
                 print(f"[魔搭生图网页版] 参考图片处理完成，URL: {ref_image_url}, ID: {ref_image_id}")
 
             # 判断使用快速模式还是专业模式
-            has_lora = any(lora.get("name") != "none" for lora in lora_list)
+            has_lora = len(lora_list) > 0
             is_img2img = bool(ref_image_url)
-            
-            if has_lora:
-                # 有Lora参数时使用专业模式
-                print(f"[魔搭生图网页版] 使用专业模式提交任务（包含Lora配置）")
+
+            # 只要模型具备 checkpointModelVersionId，一律走专业模式（保证可用性与参数完整）
+            if model_info.get("checkpointModelVersionId"):
+                mode_type = "图生图" if is_img2img else "文生图"
+                if has_lora:
+                    print(f"[魔搭生图网页版] 使用专业模式提交任务（包含Lora配置）")
+                else:
+                    print(f"[魔搭生图网页版] 使用专业模式提交{mode_type}任务")
                 task_id = self._submit_task_professional(final_prompt, model_info, ratio, lora_list, ref_image_url, ref_image_id, inference_steps, num_images)
             else:
-                # 无Lora参数时使用快速模式
+                # 无 checkpointModelVersionId 时回退到快速模式
                 mode_type = "图生图" if is_img2img else "文生图"
                 print(f"[魔搭生图网页版] 使用快速模式提交{mode_type}任务")
                 task_id = self._submit_task_quick(final_prompt, model_info, ratio, ref_image_url, ref_image_id, num_images)
@@ -237,33 +241,34 @@ class ModelScopeImageWeb:
             
             print(f"[魔搭生图网页版] 任务提交成功，任务ID: {task_id}")
             
-            # 等待任务完成
-            image_url = self._wait_for_completion(task_id)
-            if not image_url:
+            # 等待任务完成（返回所有图片URL列表）
+            image_urls = self._wait_for_completion(task_id)
+            if not image_urls:
                 raise RuntimeError("图片生成失败")
             
             # 获取剩余次数
             remaining_count = self._get_remaining_count()
             
-            # 下载并转换图片
-            image_tensor = self._download_and_convert_image(image_url)
+            # 批量下载并转换为batch
+            image_tensor = self._download_and_convert_images(image_urls)
             
-            # 构建生成信息
+            # 构建生成信息（兼容：保留第一张 image_url）
             generation_info = {
-                "image_url": image_url, # 图片URL
-                "remaining_count": remaining_count, # 剩余次数
-                "model": model, # 模型
-                "ratio": ratio, # 图片比例
-                "mode": mode_text, # 生成模式（文生图/图生图）
-                "lora_names": lora_names if lora_names else None, # Lora名称列表
-                "lora_weights": lora_weights if lora_weights else None, # Lora权重列表
-                "prompt_final": final_prompt, # 实际提交到API的提示词
-                "prompt_original": prompt, # 原始提示词
-                "ref_image_url": ref_image_url if is_img2img else None, # 参考图片URL
-                "ref_image_id": ref_image_id if is_img2img else None # 参考图片ID
+                "image_url": image_urls[0],
+                "image_urls": image_urls,
+                "remaining_count": remaining_count,
+                "model": model,
+                "ratio": ratio,
+                "mode": mode_text,
+                "lora_names": lora_names if lora_names else None,
+                "lora_weights": lora_weights if lora_weights else None,
+                "prompt_final": final_prompt,
+                "prompt_original": prompt,
+                "ref_image_url": ref_image_url if is_img2img else None,
+                "ref_image_id": ref_image_id if is_img2img else None
             }
             
-            print(f"[魔搭生图网页版] 图片生成成功: {image_url}")
+            print(f"[魔搭生图网页版] 图片生成成功，共 {len(image_urls)} 张: {image_urls}")
             print(f"[魔搭生图网页版] 剩余次数: {remaining_count}")
             
             return (image_tensor, json.dumps(generation_info, ensure_ascii=False))
@@ -290,7 +295,8 @@ class ModelScopeImageWeb:
             is_img2img = ref_image_url is not None and ref_image_id is not None
             
             # 图生图模式或有lora时必须使用专业模式
-            if is_img2img or (lora_list and model_info.get("checkpointModelVersionId")):
+            # 统一：若具备 checkpointModelVersionId 或为图生图，则使用专业模式，否则快速模式
+            if is_img2img or model_info.get("checkpointModelVersionId"):
                 # 使用专业模式支持图生图和多个lora串联
                 url = f"{self.api_base_url}/task/submit"
                 
@@ -322,8 +328,8 @@ class ModelScopeImageWeb:
                     },
                     "basicDiffusionArgs": {
                         "sampler": "Euler",
-                        "guidanceScale": 3.5 if is_img2img else 4,  # 图生图使用较低的guidanceScale
-                        "seed": int(time.time() * 1000) % 2147483647,  # 随机种子
+                        "guidanceScale": 3.5 if is_img2img else 4,
+                        "seed": -1,
                         "numInferenceSteps": int(inference_steps),
                         "numImagesPerPrompt": int(num_images),
                         "width": width,
@@ -337,6 +343,12 @@ class ModelScopeImageWeb:
                     "predictType": predict_type,
                     "controlNetFullArgs": []
                 }
+
+                # 调试输出便于核验
+                try:
+                    print(f"[魔搭生图网页版] professional.basicDiffusionArgs: {json.dumps(data['basicDiffusionArgs'], ensure_ascii=False)}")
+                except Exception:
+                    pass
                 
                 # 如果是图生图，添加图片输入参数
                 if is_img2img:
@@ -352,26 +364,25 @@ class ModelScopeImageWeb:
                     print(f"[魔搭生图网页版] 使用专业模式提交任务，包含{len(lora_list)}个lora: {', '.join(lora_names)}")
                 else:
                     print(f"[魔搭生图网页版] 使用专业模式提交任务")
-                
             else:
-                # 快速模式不支持图生图
-                if is_img2img:
-                    print(f"[魔搭生图网页版] 错误: 快速模式不支持图生图，请配置checkpointModelVersionId")
-                    return None
-                # 使用快速模式
+                # 快速模式（无 checkpoint 且非图生图）
                 url = f"{self.api_base_url}/task/quickSubmit"
-                
                 data = {
                     "predictType": "TXT_2_IMG",
                     "description": prompt,
                     "quickDiffusionArgs": {
                         "imageRatio": ratio,
-                        "numImagesPerPrompt": 1
+                        "numImagesPerPrompt": int(num_images)
                     },
                     "styleType": model_info['styleType'],
                     "addWaterMark": False
                 }
-                
+                # 调试输出便于核验
+                try:
+                    print(f"[魔搭生图网页版] quick.quickDiffusionArgs: {json.dumps(data['quickDiffusionArgs'], ensure_ascii=False)}")
+                except Exception:
+                    pass
+
                 print(f"[魔搭生图网页版] 使用快速模式提交任务")
             
             response = requests.post(
@@ -467,7 +478,7 @@ class ModelScopeImageWeb:
         Args:
             task_id: 任务ID
         Returns:
-            str: 图片URL，失败返回None
+            list[str] | None: 图片URL列表，失败返回None
         """
         start_time = time.time()
         
@@ -481,14 +492,19 @@ class ModelScopeImageWeb:
                 status = status_info.get("status")
                 
                 if status == "SUCCEED":
-                    # 任务成功，获取图片URL
+                    # 任务成功，获取所有图片URL
                     predict_result = status_info.get("predictResult", {})
                     images = predict_result.get("images", [])
-                    if images:
-                        image_url = images[0].get("imageUrl")
-                        if image_url:
-                            print(f"[魔搭生图网页版] 图片生成成功: {image_url}")
-                            return image_url
+                    urls = []
+                    for item in images or []:
+                        u = item.get("imageUrl")
+                        if u:
+                            urls.append(u)
+                    if urls:
+                        print(f"[魔搭生图网页版] 图片生成成功，共 {len(urls)} 张")
+                        for i, u in enumerate(urls):
+                            print(f"[魔搭生图网页版] 第{i+1}张: {u}")
+                        return urls
                     print("[魔搭生图网页版] 任务成功但未找到图片URL")
                     return None
                 
@@ -588,33 +604,51 @@ class ModelScopeImageWeb:
 
     def _download_and_convert_image(self, image_url):
         """
-        下载图片并转换为ComfyUI的IMAGE格式
+        下载单张图片并转换为ComfyUI的IMAGE格式（保留供内部复用）
         """
         try:
             print(f"[魔搭生图网页版] 开始下载图片: {image_url}")
-            
-            # 下载图片
             resp = requests.get(image_url, timeout=60)
             resp.raise_for_status()
-            print(f"[魔搭生图网页版] 图片下载成功，大小: {len(resp.content)} bytes")
-            
-            # 使用PIL打开图片并转换为RGB
             img = Image.open(BytesIO(resp.content)).convert("RGB")
-            print(f"[魔搭生图网页版] 图片信息: 尺寸={img.size}, 模式={img.mode}")
-            
-            # 转换为numpy数组
             np_image = np.array(img, dtype=np.float32) / 255.0
-            print(f"[魔搭生图网页版] 数组信息: 形状={np_image.shape}, 数据类型={np_image.dtype}")
-            
-            # 转换为torch.Tensor并添加batch维度
             tensor_image = torch.from_numpy(np_image).unsqueeze(0)
-            print(f"[魔搭生图网页版] 最终tensor: 形状={tensor_image.shape}, 数据类型={tensor_image.dtype}")
-            
             return tensor_image
-            
         except Exception as e:
             print(f"[魔搭生图网页版] 错误详情: {e}")
             raise RuntimeError(f"图片下载或转换失败: {e}")
+
+    def _download_and_convert_images(self, image_urls):
+        """
+        批量下载图片并堆叠为 [N, H, W, 3] 的 batch 张量
+        - 若尺寸不一致，自动以第一张尺寸为目标进行统一 resize
+        """
+        tensors = []
+        target_size = None  # (width, height)
+        for idx, url in enumerate(image_urls):
+            try:
+                print(f"[魔搭生图网页版] 开始下载第{idx+1}张: {url}")
+                resp = requests.get(url, timeout=60)
+                resp.raise_for_status()
+                img = Image.open(BytesIO(resp.content)).convert("RGB")
+                if target_size is None:
+                    target_size = img.size  # (W,H)
+                else:
+                    if img.size != target_size:
+                        # 统一尺寸
+                        img = img.resize(target_size, Image.Resampling.LANCZOS)
+                        print(f"[魔搭生图网页版] 尺寸不一致，已统一到: {target_size[0]}x{target_size[1]}")
+                np_image = np.array(img, dtype=np.float32) / 255.0
+                tensor_image = torch.from_numpy(np_image).unsqueeze(0)  # [1,H,W,3]
+                tensors.append(tensor_image)
+            except Exception as e:
+                print(f"[魔搭生图网页版] 第{idx+1}张下载失败: {e}")
+                continue
+        if not tensors:
+            raise RuntimeError("所有图片下载失败")
+        batch = torch.cat(tensors, dim=0)  # [N,H,W,3]
+        print(f"[魔搭生图网页版] 最终tensor batch: 形状={batch.shape}, dtype={batch.dtype}")
+        return batch
 
     def _parse_ratio_to_size(self, ratio):
         """
