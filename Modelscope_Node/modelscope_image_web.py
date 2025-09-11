@@ -105,6 +105,7 @@ class ModelScopeImageWeb:
                 "lora_name_3": (lora_options, {"default": "none"}),
                 "lora_weight_3": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.1}),
                 "inference_steps": ("INT", {"default": 30, "min": 20, "max": 50, "step": 1}),
+                "cfg_scale": ("FLOAT", {"default": 4.0, "min": 0.1, "max": 20.0, "step": 0.1}),
                 "num_images": (["1", "2", "4"], {"default": "1"}),
             }
         }
@@ -114,7 +115,7 @@ class ModelScopeImageWeb:
     FUNCTION = "generate"
     CATEGORY = "🦉FreeAPI/ModelScope"
 
-    def generate(self, prompt, model, ratio, ref_image=None, lora_name_1="none", lora_weight_1=1.0, lora_name_2="none", lora_weight_2=1.0, lora_name_3="none", lora_weight_3=1.0, inference_steps=30, num_images="1"):
+    def generate(self, prompt, model, ratio, ref_image=None, lora_name_1="none", lora_weight_1=1.0, lora_name_2="none", lora_weight_2=1.0, lora_name_3="none", lora_weight_3=1.0, inference_steps=30, cfg_scale=4.0, num_images="1"):
         """
         主生成方法：
         调用ModelScope Image API进行文本到图像生成或图像到图像生成。
@@ -229,7 +230,7 @@ class ModelScopeImageWeb:
                     print(f"[魔搭生图网页版] 使用专业模式提交任务（包含Lora配置）")
                 else:
                     print(f"[魔搭生图网页版] 使用专业模式提交{mode_type}任务")
-                task_id = self._submit_task_professional(final_prompt, model_info, ratio, lora_list, ref_image_url, ref_image_id, inference_steps, num_images)
+                task_id = self._submit_task_professional(final_prompt, model_info, ratio, lora_list, ref_image_url, ref_image_id, inference_steps, num_images, cfg_scale)
             else:
                 # 无 checkpointModelVersionId 时回退到快速模式
                 mode_type = "图生图" if is_img2img else "文生图"
@@ -277,7 +278,7 @@ class ModelScopeImageWeb:
             print(f"[魔搭生图网页版] 生成失败: {str(e)}")
             raise RuntimeError(f"图片生成失败: {str(e)}")
 
-    def _submit_task_professional(self, prompt, model_info, ratio, lora_list=None, ref_image_url=None, ref_image_id=None, inference_steps=30, num_images="1"):
+    def _submit_task_professional(self, prompt, model_info, ratio, lora_list=None, ref_image_url=None, ref_image_id=None, inference_steps=30, num_images="1", cfg_scale=4.0):
         """
         专业模式提交任务（支持Lora配置和高级参数）
         Args:
@@ -328,7 +329,7 @@ class ModelScopeImageWeb:
                     },
                     "basicDiffusionArgs": {
                         "sampler": "Euler",
-                        "guidanceScale": 3.5 if is_img2img else 4,
+                        "guidanceScale": float(cfg_scale),
                         "seed": -1,
                         "numInferenceSteps": int(inference_steps),
                         "numImagesPerPrompt": int(num_images),
