@@ -449,7 +449,12 @@ class OpenAIImageAPI:
                         print(f"[OpenAIImageAPI] 参考图{i+1}处理失败: {e}")
                         continue
 
-                max_images = max(1, min(10, len(images_field)))  # 生成张数默认与输入数不强绑定，这里不强制=输入数
+                # 使用用户 num_images 控制生成数量；范围限制到 1-8
+                try:
+                    mi = int(num_images)  # 可能为None，下面 except 兜底
+                except Exception:
+                    mi = 1
+                max_images = max(1, min(8, mi))
                 payload = {
                     "model": model,
                     "prompt": user_prompt,
