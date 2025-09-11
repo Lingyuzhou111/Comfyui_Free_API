@@ -23,10 +23,54 @@ class OpenAIImageAPI:
     - 多平台兼容：自动适配不同平台的API格式差异
     """
     def __init__(self):
-        pass
+        # 延迟加载ratio映射，避免导入阶段因文件缺失报错
+        self._ratio_map = None
+        self._resolution_keys = ["1k", "1.5k", "2k", "4k"]
+        self._ratio_keys = ["1:1", "2:3", "3:4", "4:3", "3:2", "16:9", "9:16", "21:9"]
+
+    def _load_ratio_map(self):
+        """
+        从同目录的ratio_map.json读取分辨率与比例映射。
+        文件结构应包含四个分辨率键：1k、1.5k、2k、4k；每个键下包含八种比例。
+        """
+        if self._ratio_map is not None:
+            return self._ratio_map
+        try:
+            current_dir = os.path.dirname(__file__)
+            json_path = os.path.join(current_dir, "ratio_map.json")
+            with open(json_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            # 按实际文件结构校验：*_ratios 键，以及其下的比例键
+            required_ratio_keys = ("1k_ratios", "1.5k_ratios", "2k_ratios", "4k_ratios")
+            for rk in required_ratio_keys:
+                if rk not in data:
+                    raise ValueError(f"ratio_map.json缺少键: {rk}")
+                for pk in self._ratio_keys:
+                    if pk not in data[rk]:
+                        raise ValueError(f"ratio_map.json的{rk}缺少比例键: {pk}")
+            self._ratio_map = data
+            return self._ratio_map
+        except Exception as e:
+            print(f"[OpenAIImageAPI] 读取ratio_map.json失败: {e}")
+            # 失败时提供回退：用平方像素占位，保证节点可用
+            fallback = {}
+            # 简单的回退数值（非硬编码固定在INPUT_TYPES中，仅作为运行时兜底）
+            fallback_sizes = {
+                "1k": {"1:1": "1024x1024", "2:3": "896x1344", "3:4": "960x1280", "4:3": "1280x960", "3:2": "1344x896", "16:9": "1536x864", "9:16": "864x1536", "21:9": "1792x768"},
+                "1.5k": {"1:1": "1328x1328", "2:3": "1104x1656", "3:4": "1200x1600", "4:3": "1600x1200", "3:2": "1656x1104", "16:9": "1856x1044", "9:16": "1044x1856", "21:9": "2208x944"},
+                "2k": {"1:1": "1664x1664", "2:3": "1472x2208", "3:4": "1536x2048", "4:3": "2048x1536", "3:2": "2208x1472", "16:9": "2368x1332", "9:16": "1332x2368", "21:9": "2944x1260"},
+                "4k": {"1:1": "3072x3072", "2:3": "2688x4032", "3:4": "2880x3840", "4:3": "3840x2880", "3:2": "4032x2688", "16:9": "4096x2304", "9:16": "2304x4096", "21:9": "5376x2304"}
+            }
+            self._ratio_map = fallback
+            return self._ratio_map
 
     @classmethod
     def INPUT_TYPES(cls):
+        """
+        注意：ComfyUI在类方法中无法直接访问实例成员，因此我们提供一个静态兜底集合。
+        真正的分辨率/比例映射在运行时通过_generate_size_from_ratio加载ratio_map.json。
+        下拉仅展示固定的四档resolution与八种ratio选项，值最终会通过映射转为size像素串。
+        """
         return {
             "required": {
                 "api_endpoint": (["images/generations", "chat/completions"], {"default": "images/generations"}),
@@ -34,7 +78,9 @@ class OpenAIImageAPI:
                 "model": ("STRING", {"default": "dall-e-3", "multiline": False}),
                 "api_key": ("STRING", {"default": "", "multiline": False}),
                 "user_prompt": ("STRING", {"multiline": True, "default": "生成一只可爱的小猫"}),
-                "size": (["1024x1024", "768x1344", "1344x768", "864x1152", "1152x864", "1328x1328", "928x1664", "1664x928", "1104x1472", "1472x1104", "1024x1536", "1536x1024"], {"default": "1024x1024"}),
+                "resolution": (["1k", "1.5k", "2k", "4k", "gpt4o"], {"default": "1k"}),
+                # 注意：当选择 gpt4o 时，仅 1:1、2:3、3:2 有效，其它比例会在运行时被映射校验拦截
+                "ratio": (["1:1", "2:3", "3:4", "4:3", "3:2", "16:9", "9:16", "21:9"], {"default": "1:1"}),
                 "num_images": ("INT", {"default": 1, "min": 1, "max": 4, "step": 1}),
             },
             "optional": {
@@ -42,6 +88,8 @@ class OpenAIImageAPI:
                 "image2": ("IMAGE",),
                 "image3": ("IMAGE",),
                 "image4": ("IMAGE",),
+                "image5": ("IMAGE",),
+                "image6": ("IMAGE",),
             }
         }
 
@@ -50,7 +98,7 @@ class OpenAIImageAPI:
     FUNCTION = "generate_image"
     CATEGORY = "🦉FreeAPI/OpenAI"
 
-    def generate_image(self, base_url, model, api_key, user_prompt, size, num_images, api_endpoint, image1=None, image2=None, image3=None, image4=None):
+    def generate_image(self, base_url, model, api_key, user_prompt, resolution, ratio, num_images, api_endpoint, image1=None, image2=None, image3=None, image4=None, image5=None, image6=None):
         """
         主图像生成方法：
         1. 根据是否有输入图像决定是图像生成还是图像编辑
@@ -72,6 +120,9 @@ class OpenAIImageAPI:
                 empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
             return (empty_image, "错误：未配置base_url，请在节点参数中设置base_url")
         
+        # 将 resolution + ratio 转为具体像素串 size
+        size = self._generate_size_from_ratio(resolution, ratio)
+
         # 验证gpt-image-1模型的尺寸限制
         if model == "gpt-image-1":
             valid_sizes = ["1024x1024", "1536x1024", "1024x1536"]
@@ -83,7 +134,7 @@ class OpenAIImageAPI:
                 return (empty_image, f"错误：gpt-image-1模型仅支持尺寸 {valid_sizes}，当前尺寸：{size}")
         
         # 检查是否有输入图像，决定使用哪个API端点
-        input_images = [img for img in [image1, image2, image3, image4] if img is not None]
+        input_images = [img for img in [image1, image2, image3, image4, image5, image6] if img is not None]
         
         # 根据选择的API端点决定请求方式
         if api_endpoint == "chat/completions":
@@ -96,9 +147,9 @@ class OpenAIImageAPI:
                 return self._edit_images(base_url, model, api_key, user_prompt, input_images, size)
             else:
                 # 图像生成模式
-                return self._generate_images(base_url, model, api_key, user_prompt, size, num_images)
+                return self._images_generations_request(base_url, model, api_key, user_prompt, size, num_images)
 
-    def _generate_images(self, base_url, model, api_key, user_prompt, size, num_images):
+    def _images_generations_request(self, base_url, model, api_key, user_prompt, size, num_images):
         """
         图像生成模式
         """
@@ -139,14 +190,31 @@ class OpenAIImageAPI:
                 }
             elif is_volcengine:
                 # 火山方舟平台API格式
-                payload = {
-                    "model": model,
-                    "prompt": user_prompt,
-                    "response_format": response_format,
-                    "size": size,
-                    "guidance_scale": 3, # 固定值
-                    "watermark": False # 固定值
-                }
+                # 若为 Seedream4.0（文生图）按示例进行定制，否则保持通用
+                is_seedream = model in ("doubao-seedream-4-0-250828", "seedream-4.0", "doubao-seedream-4-0")
+                if is_seedream:
+                    # 参考用户示例：/api/v3/images/generations 但本节点统一走 /images/generations 路径
+                    # 设置顺序生成开关与数量，兼容 num_images 参数
+                    max_images = int(num_images) if isinstance(num_images, int) and num_images > 0 else 1
+                    payload = {
+                        "model": model,
+                        "prompt": user_prompt,
+                        "sequential_image_generation": "auto",  # 与示例一致（示例有两处，最终以disabled为准）
+                        "sequential_image_generation_options": {"max_images": max_images},
+                        "size": size,
+                        "stream": False,
+                        "response_format": "url",
+                        "watermark": False
+                    }
+                else:
+                    payload = {
+                        "model": model,
+                        "prompt": user_prompt,
+                        "response_format": response_format,
+                        "size": size,
+                        "guidance_scale": 3,  # 固定值
+                        "watermark": False     # 固定值
+                    }
             else:
                 # OpenAI兼容格式
                 payload = {
@@ -340,64 +408,89 @@ class OpenAIImageAPI:
 
     def _edit_images_volcengine(self, base_url, model, api_key, user_prompt, input_images, size):
         """
-        火山方舟平台图像编辑模式
+        火山方舟平台图像编辑模式（支持 Seedream4.0 多图参考）
         """
         try:
-            # 火山方舟平台使用标准的JSON格式，但需要将图像转换为base64
             headers = self._build_headers(api_key)
             api_url = f"{base_url.rstrip('/')}/images/generations"
             
             print(f"[OpenAIImageAPI] 正在请求火山方舟图像编辑API: {api_url}")
             print(f"[OpenAIImageAPI] 请求参数: model={model}, 输入图像数量={len(input_images)}")
-            print(f"[OpenAIImageAPI] 请求头: {headers}")
             
-            # 处理第一张输入图像（火山方舟只支持单张图像）
-            if input_images:
+            if not input_images:
+                empty_image = self._create_empty_image()
+                if empty_image is None:
+                    import torch
+                    empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+                return (empty_image, "没有输入图像")
+
+            # Seedream4.0 专用：多图参考（最多6张）
+            is_seedream = model in ("doubao-seedream-4-0-250828", "seedream-4.0", "doubao-seedream-4-0")
+            images_field = []
+            if is_seedream:
+                # 将所有输入图片转为 data URL，或若未来支持字符串URL输入则直接透传
+                for i, img in enumerate(input_images[:6]):
+                    try:
+                        if hasattr(img, "cpu") or hasattr(img, "save"):
+                            pil_img = self._convert_to_pil(img)
+                            buf = BytesIO()
+                            pil_img.save(buf, format="PNG")
+                            buf.seek(0)
+                            import base64
+                            b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                            images_field.append(f"data:image/png;base64,{b64}")
+                            print(f"[OpenAIImageAPI] 参考图{i+1}转base64成功: 尺寸={pil_img.size}")
+                        elif isinstance(img, str) and (img.startswith("http://") or img.startswith("https://") or img.startswith("data:image/")):
+                            images_field.append(img)
+                            print(f"[OpenAIImageAPI] 参考图{i+1}为URL/数据URL，已直接使用")
+                        else:
+                            print(f"[OpenAIImageAPI] 参考图{i+1}格式不支持，跳过")
+                    except Exception as e:
+                        print(f"[OpenAIImageAPI] 参考图{i+1}处理失败: {e}")
+                        continue
+
+                max_images = max(1, min(10, len(images_field)))  # 生成张数默认与输入数不强绑定，这里不强制=输入数
+                payload = {
+                    "model": model,
+                    "prompt": user_prompt,
+                    "image": images_field,  # 多图参考
+                    "sequential_image_generation": "auto",
+                    "sequential_image_generation_options": {"max_images": max_images},
+                    "size": size,  # 示例使用像素尺寸
+                    "stream": False,
+                    "response_format": "url",
+                    "watermark": False  # 按示例
+                }
+            else:
+                # 非 Seedream4.0：兼容旧的单图模式（保留原有 adaptive 与固定参数）
                 try:
                     pil_image = self._convert_to_pil(input_images[0])
                     img_buffer = BytesIO()
                     pil_image.save(img_buffer, format="PNG")
                     img_buffer.seek(0)
-                    
-                    # 转换为base64
                     import base64
                     image_base64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
-                    
-                    print(f"[OpenAIImageAPI] 图像处理成功: 尺寸={pil_image.size}, 大小={len(img_buffer.getvalue())} bytes")
-                    
-                    # 构造火山方舟图生图请求
                     payload = {
                         "model": model,
                         "prompt": user_prompt,
                         "image": f"data:image/png;base64,{image_base64}",
-                        "response_format": "url", # 火山方舟固定返回URL
-                        "size": "adaptive", # 火山方舟图生图固定使用adaptive
-                        "guidance_scale": 5.5, # 固定值
-                        "watermark": False # 固定值
+                        "response_format": "url",
+                        "size": "adaptive",
+                        "guidance_scale": 5.5,
+                        "watermark": False
                     }
-                    
-                    print(f"[OpenAIImageAPI] 请求载荷: {self._safe_json_dumps(payload)}")
-                    
-                    resp = requests.post(api_url, headers=headers, json=payload, timeout=300)
-                    
-                    print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
-                    print(f"[OpenAIImageAPI] 响应头: {dict(resp.headers)}")
-                    
-                    return self._parse_image_response(resp)
-                    
                 except Exception as e:
                     empty_image = self._create_empty_image()
                     if empty_image is None:
                         import torch
                         empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
                     return (empty_image, f"图像处理失败: {e}")
-            else:
-                empty_image = self._create_empty_image()
-                if empty_image is None:
-                    import torch
-                    empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
-                return (empty_image, "没有输入图像")
-                
+
+            print(f"[OpenAIImageAPI] 请求载荷: {self._safe_json_dumps(payload)}")
+            resp = requests.post(api_url, headers=headers, json=payload, timeout=300)
+            print(f"[OpenAIImageAPI] 响应状态码: {resp.status_code}")
+            # 解析多图响应由 _parse_image_response 统一处理
+            return self._parse_image_response(resp)
         except Exception as e:
             empty_image = self._create_empty_image()
             if empty_image is None:
@@ -528,36 +621,48 @@ class OpenAIImageAPI:
             
             # 解析响应数据 - 支持多种API格式
             if "data" in data and data["data"]:
-                # 标准图像生成API格式
-                image_data = data["data"][0]  # 取第一张图像
-                print(f"[OpenAIImageAPI] 找到图像数据: {list(image_data.keys())}")
-                
-                if "b64_json" in image_data:
-                    # 处理base64格式（优先，因为OpenAI兼容API默认返回此格式）
-                    b64_data = image_data["b64_json"]
-                    print(f"[OpenAIImageAPI] 处理base64图像数据，长度: {len(b64_data)}, 预览: {self._truncate_base64_log(b64_data)}")
-                    # 处理可能包含数据URI前缀的base64数据
-                    if b64_data.startswith('data:image/'):
-                        # 移除数据URI前缀，只保留base64数据部分
-                        b64_data = b64_data.split(',', 1)[1]
-                    image_bytes = base64.b64decode(b64_data)
-                    pil_image = Image.open(BytesIO(image_bytes))
-                    print(f"[OpenAIImageAPI] base64图像加载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}")
-                elif "url" in image_data:
-                    # 处理URL格式
-                    image_url = image_data["url"]
-                    print(f"[OpenAIImageAPI] 下载图像: {image_url}")
-                    img_resp = requests.get(image_url, timeout=30)
-                    img_resp.raise_for_status()
-                    pil_image = Image.open(BytesIO(img_resp.content))
-                    print(f"[OpenAIImageAPI] URL图像下载成功: 尺寸={pil_image.size}, 模式={pil_image.mode}, 大小={len(img_resp.content)} bytes")
-                else:
-                    print(f"[OpenAIImageAPI] 未找到支持的图像格式，可用字段: {list(image_data.keys())}")
+                # 标准图像生成API格式，支持多图
+                data_list = data["data"]
+                print(f"[OpenAIImageAPI] data数组长度: {len(data_list)}")
+                pil_images = []
+                image_urls = []
+                for idx, image_data in enumerate(data_list):
+                    try:
+                        print(f"[OpenAIImageAPI] 处理第{idx+1}张: 可用字段 {list(image_data.keys())}")
+                        if "b64_json" in image_data:
+                            b64_data = image_data["b64_json"]
+                            if isinstance(b64_data, str) and b64_data.startswith('data:image/'):
+                                b64_data = b64_data.split(',', 1)[1]
+                            image_bytes = base64.b64decode(b64_data)
+                            pil = Image.open(BytesIO(image_bytes))
+                            pil_images.append(pil)
+                            image_urls.append("inline_base64")
+                            print(f"[OpenAIImageAPI] 第{idx+1}张base64解析成功: 尺寸={pil.size}")
+                        elif "url" in image_data:
+                            url = image_data["url"]
+                            image_urls.append(url)
+                            print(f"[OpenAIImageAPI] 下载第{idx+1}张: {url}")
+                            img_resp = requests.get(url, timeout=30)
+                            img_resp.raise_for_status()
+                            pil = Image.open(BytesIO(img_resp.content))
+                            pil_images.append(pil)
+                            print(f"[OpenAIImageAPI] 第{idx+1}张URL下载成功: 尺寸={pil.size}, 大小={len(img_resp.content)} bytes")
+                        else:
+                            print(f"[OpenAIImageAPI] 第{idx+1}张未找到支持的图像字段，跳过")
+                    except Exception as e:
+                        print(f"[OpenAIImageAPI] 第{idx+1}张处理失败: {e}")
+                        continue
+                if not pil_images:
                     empty_image = self._create_empty_image()
                     if empty_image is None:
                         import torch
                         empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
-                    return (empty_image, "API响应中未找到图像数据")
+                    return (empty_image, "API响应中未成功解析任何图像")
+                # 组批：将多张PIL转换为ComfyUI批量( N,H,W,3 )
+                comfyui_batch = self._pil_list_to_comfyui_batch(pil_images)
+                # 生成信息：多URL换行拼接
+                generation_info = self._format_generation_info(data, "\n".join([u for u in image_urls if u]))
+                return (comfyui_batch, generation_info)
             elif "images" in data and data["images"]:
                 # 魔搭平台API格式
                 image_data = data["images"][0]  # 取第一张图像
@@ -636,22 +741,17 @@ class OpenAIImageAPI:
                     empty_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
                 return (empty_image, "API响应格式不支持")
             
-            # 如果到达这里，说明找到了图像数据，进行后续处理
-            # 转换为ComfyUI格式
-            print(f"[OpenAIImageAPI] 开始转换为ComfyUI格式...")
+            # 如果到达这里（单图路径），转换为ComfyUI格式
+            print(f"[OpenAIImageAPI] 开始转换为ComfyUI格式(单图)...")
             comfyui_image = self._pil_to_comfyui(pil_image)
             if comfyui_image is None:
                 print(f"[OpenAIImageAPI] ComfyUI格式转换失败，使用空图像")
-                # 如果转换失败，使用空图像
                 import torch
                 comfyui_image = torch.zeros(1, 512, 512, 3, dtype=torch.float32)
             else:
                 print(f"[OpenAIImageAPI] ComfyUI格式转换成功: 形状={comfyui_image.shape}, 类型={comfyui_image.dtype}")
-            
-            # 格式化生成信息
             generation_info = self._format_generation_info(data, image_url)
             print(f"[OpenAIImageAPI] 生成信息: {generation_info}")
-            
             return (comfyui_image, generation_info)
                 
         except Exception as e:
@@ -1373,6 +1473,35 @@ class OpenAIImageAPI:
             "Content-Type": "application/json"
         }
 
+    def _generate_size_from_ratio(self, resolution, ratio):
+        """
+        根据resolution与ratio从ratio_map.json映射出具体像素尺寸字符串，例如"1104x1472"。
+        """
+        try:
+            ratio_map = self._load_ratio_map()
+            key_map = {
+                "1k": "1k_ratios",
+                "1.5k": "1.5k_ratios",
+                "2k": "2k_ratios",
+                "4k": "4k_ratios",
+                "gpt4o": "gpt4o_ratios",
+            }
+            key = key_map.get(resolution)
+            if not key or key not in ratio_map:
+                raise KeyError(f"不支持的resolution: {resolution}")
+            level_map = ratio_map[key]
+            if ratio not in level_map:
+                raise KeyError(f"不支持的比例: {ratio}")
+            dims = level_map[ratio]
+            w = dims.get("width")
+            h = dims.get("height")
+            if not isinstance(w, int) or not isinstance(h, int):
+                raise ValueError(f"映射值非法: {dims}")
+            return f"{w}x{h}"
+        except Exception as e:
+            print(f"[OpenAIImageAPI] 映射resolution/ratio失败，使用默认1024x1024: {e}")
+            return "1024x1024"
+
     def _truncate_base64_log(self, base64_str, max_length=50):
         """
         截断base64字符串用于日志记录，避免刷屏
@@ -1382,6 +1511,60 @@ class OpenAIImageAPI:
         if len(base64_str) <= max_length:
             return base64_str
         return f"{base64_str[:max_length]}... (总长度: {len(base64_str)})"
+
+    def _pil_list_to_comfyui_batch(self, pil_list):
+        """
+        将多张PIL图片转换为ComfyUI批量图像张量，形状 (N, H, W, 3)。
+        若尺寸不同，按第一张尺寸将其余图片等比缩放并中心填充到相同大小，避免维度不一致。
+        """
+        try:
+            import torch
+            import numpy as np
+
+            if not pil_list:
+                return torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+
+            # 目标尺寸采用首图尺寸
+            tgt_w, tgt_h = pil_list[0].size
+            batch = []
+            for i, img in enumerate(pil_list):
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
+                w, h = img.size
+                if (w, h) != (tgt_w, tgt_h):
+                    # 保持比例缩放到不超过目标尺寸的最大尺寸，然后居中贴图
+                    img = self._resize_and_pad(img, (tgt_w, tgt_h))
+                arr = np.array(img, dtype=np.float32) / 255.0  # (H,W,3)
+                batch.append(arr)
+            batch_np = np.stack(batch, axis=0)  # (N,H,W,3)
+            return torch.from_numpy(batch_np)
+        except Exception as e:
+            print(f"[OpenAIImageAPI] 批量转换失败: {e}")
+            try:
+                # 退化为单张转换
+                return self._pil_to_comfyui(pil_list[0])
+            except Exception:
+                import torch
+                return torch.zeros(1, 512, 512, 3, dtype=torch.float32)
+
+    def _resize_and_pad(self, pil_img, target_size):
+        """
+        等比缩放并用黑边填充到目标尺寸。
+        """
+        from PIL import Image as _Image
+        tgt_w, tgt_h = target_size
+        w, h = pil_img.size
+        # 计算等比缩放
+        scale = min(tgt_w / w, tgt_h / h)
+        new_w = max(1, int(w * scale))
+        new_h = max(1, int(h * scale))
+        resized = pil_img.resize((new_w, new_h), _Image.LANCZOS)
+        # 创建画布并居中粘贴
+        canvas = _Image.new("RGB", (tgt_w, tgt_h), (0, 0, 0))
+        left = (tgt_w - new_w) // 2
+        top = (tgt_h - new_h) // 2
+        canvas.paste(resized, (left, top))
+        return canvas
 
     def _safe_json_dumps(self, obj, ensure_ascii=False, indent=2):
         """
