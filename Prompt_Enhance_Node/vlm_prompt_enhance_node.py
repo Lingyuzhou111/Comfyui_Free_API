@@ -9,8 +9,8 @@ VLM Prompt Enhance Node
 - 接收用户 user_prompt、image1、image2、max_tokens、temperature、top_p；当 preset_template 选择“手动输入”时，使用 sys_prompt 文本框内容作为系统提示词
 - 按 OpenAI 兼容 Chat Completions 接口格式调用对应 base_url（需 /chat/completions），支持图文输入识别/反推等操作（可零图或多图）
 - 输出:
-  1) context: 展示最终提交给 API 的 system_prompt + user_prompt（便于检查上下文）
-  2) result: API 响应生成内容
+  1) input_context: 展示最终提交给 API 的 system_prompt + user_prompt（便于检查上下文）
+  2) api_response: API 响应生成内容
 
 注意:
 - 本实现仅用于合法、正当的提示词优化/图文理解，不包含任何恶意用途。
@@ -267,8 +267,8 @@ class VLM_Prompt_Enhance_Node:
         8) image1: IMAGE（可选）
         9) image2: IMAGE（可选）
     - 输出:
-        1) context: str（system + user 最终提交内容）
-        2) result: str（API 响应增强结果）
+        1) input_context: str（system + user 最终提交内容）
+        2) api_response: str（API 响应增强结果）
     """
 
     @classmethod
@@ -294,7 +294,7 @@ class VLM_Prompt_Enhance_Node:
                 "max_tokens": ("INT", {"default": 2048, "min": 1, "max": 8192, "step": 1}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.05}),
                 "top_p": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 1.0, "step": 0.05}),
-                "control_after_generate": (["固定", "增加", "减少", "随机"], {"default": "固定", "tooltip": "固定: 使用上一轮缓存结果；其他: 正常生成"}),
+                "seed": ("INT", {"default": -1, "min": -1, "max": 2**31 - 1, "step": 1, "tooltip": "仅用于触发重新执行；数值变化会绕过ComfyUI全局缓存，不参与API语义"}),
             },
             "optional": {
                 "image1": ("IMAGE",),
@@ -303,7 +303,7 @@ class VLM_Prompt_Enhance_Node:
         }
 
     RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("context", "result")
+    RETURN_NAMES = ("input_context", "api_response")
     FUNCTION = "enhance"
     CATEGORY = "🦉FreeAPI/Prompt Enhance"
 
@@ -311,8 +311,6 @@ class VLM_Prompt_Enhance_Node:
         self._cached_map_info: Optional[Dict[str, Dict[str, str]]] = None
         self._cached_templates: Optional[Dict[str, str]] = None
         self._last_reload_ts: float = 0.0
-        # 缓存上一轮增强结果（在 control_after_generate=固定 时复用）
-        self._last_result: Optional[str] = None
 
     def _maybe_reload(self):
         now = time.time()
@@ -338,16 +336,19 @@ class VLM_Prompt_Enhance_Node:
         max_tokens: int = 2048,
         temperature: float = 0.8,
         top_p: float = 0.6,
+        seed: int = 0,
         image1=None,
         image2=None,
-        control_after_generate: str = "固定",
     ):
         """
         主执行逻辑:
         1) 解析 vlm_model -> base_url, api_key, model
         2) 选择系统模版或手动系统提示词，拼装最终提交的 system + user + images(0~2张)
         3) 请求 OpenAI 兼容接口，得到结果
-        4) 返回 context 与 result
+        4) 返回 input_context 与 api_response
+
+        说明:
+        - 新增参数 seed 仅作为触发重新执行的扰动因子，不参与 API 语义；当 seed 变化时，ComfyUI 认为节点输入已变化，会重新执行本函数。
         """
         self._maybe_reload()
 
@@ -363,8 +364,8 @@ class VLM_Prompt_Enhance_Node:
         map_info = self._cached_map_info or {}
         model_info = map_info.get(str(vlm_model).replace("：", ":"))
         if not model_info:
-            context = f"[System] 无法找到模型映射: {vlm_model}\n[User] {user_prompt}\n[Images] {len(image_urls)}"
-            return (context, "模型未配置或配置读取失败")
+            input_context = f"[System] 无法找到模型映射: {vlm_model}\n[User] {user_prompt}\n[Images] {len(image_urls)}"
+            return (input_context, "模型未配置或配置读取失败")
 
         base_url = (model_info.get("base_url") or "").strip()
         api_key = (model_info.get("api_key") or "").strip()
@@ -380,15 +381,10 @@ class VLM_Prompt_Enhance_Node:
         else:
             system_prompt = sys_templates.get(preset_template) or sys_templates.get("图文理解:精确描述") or ""
 
-        context = f"[System]\n{system_prompt}\n\n[User]\n{user_prompt}\n\n[Images]\n{len(image_urls)} image(s)"
+        input_context = f"[System]\n{system_prompt}\n\n[User]\n{user_prompt}\n\n[Images]\n{len(image_urls)} image(s)"
 
         if not base_url or not model:
-            return (context, "base_url 或 model 为空，请检查配置")
-
-        # 当选择“固定”并且已有缓存时，直接返回缓存，不再请求API
-        if str(control_after_generate).strip() == "固定" and isinstance(self._last_result, str) and self._last_result:
-            print("[VLM Prompt Enhance] control_after_generate=固定，已跳过API请求，复用上一轮缓存结果。")
-            return (context, self._last_result)
+            return (input_context, "base_url 或 model 为空，请检查配置")
 
         ok, result = _chat_completions_with_images(
             base_url=base_url,
@@ -402,11 +398,8 @@ class VLM_Prompt_Enhance_Node:
             top_p=float(top_p),
         )
 
-        result = result if ok else f"请求失败: {result}"
-        # 仅当请求成功时更新缓存
-        if ok:
-            self._last_result = result
-        return (context, result)
+        api_response = result if ok else f"请求失败: {result}"
+        return (input_context, api_response)
 
 
 # ComfyUI 节点注册
