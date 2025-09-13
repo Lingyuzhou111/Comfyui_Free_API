@@ -9,8 +9,8 @@ LLM Prompt Enhance Node
 - 接收用户 user_prompt、max_tokens、temperature、top_p；当 preset_template 选择“手动输入”时，使用 sys_prompt 文本框内容作为系统提示词
 - 按 OpenAI 兼容 Chat Completions 接口格式调用对应 base_url（需 /chat/completions），返回增强后的提示词
 - 输出:
-  1) input_prompt: 展示最终提交给 API 的 system_prompt + user_prompt（便于检查上下文）
-  2) output_prompt: API 响应生成内容（增强后的提示词）
+  1) context: 展示最终提交给 API 的 system_prompt + user_prompt（便于检查上下文）
+  2) result: API 响应生成内容（增强后的提示词）
 
 注意:
 - 本实现仅用于合法、正当的提示词优化工作，不包含任何恶意用途。
@@ -192,8 +192,8 @@ class LLM_Prompt_Enhance_Node:
         6) temperature: 浮点（默认 0.8）
         7) top_p: 浮点（默认 0.6）
     - 输出:
-        1) input_prompt: str（system + user 最终提交内容）
-        2) output_prompt: str（API 响应增强结果）
+        1) context: str（system + user 最终提交内容）
+        2) result: str（API 响应增强结果）
     """
 
     @classmethod
@@ -220,11 +220,12 @@ class LLM_Prompt_Enhance_Node:
                 "max_tokens": ("INT", {"default": 2048, "min": 1, "max": 8192, "step": 1}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.05}),
                 "top_p": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 1.0, "step": 0.05}),
+                "control_after_generate": (["固定", "增加", "减少", "随机"], {"default": "固定", "tooltip": "固定: 使用上一轮缓存结果；其他: 正常生成"}),
             },
         }
 
     RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("input_prompt", "output_prompt")
+    RETURN_NAMES = ("context", "result")
     FUNCTION = "enhance"
     CATEGORY = "🦉FreeAPI/Prompt Enhance"
 
@@ -232,6 +233,8 @@ class LLM_Prompt_Enhance_Node:
         self._cached_map_info: Optional[Dict[str, Dict[str, str]]] = None
         self._cached_templates: Optional[Dict[str, str]] = None
         self._last_reload_ts: float = 0.0
+        # 缓存上一轮增强结果（仅在 control_after_generate=固定 时复用）
+        self._last_result: Optional[str] = None
 
     def _maybe_reload(self):
         now = time.time()
@@ -257,13 +260,14 @@ class LLM_Prompt_Enhance_Node:
         max_tokens: int = 2048,
         temperature: float = 0.8,
         top_p: float = 0.6,
+        control_after_generate: str = "固定",
     ):
         """
         主执行逻辑:
         1) 解析 llm_model -> base_url, api_key, model
         2) 选择系统模版或手动系统提示词，拼装最终提交的 system + user
         3) 请求 OpenAI 兼容接口，得到结果
-        4) 返回 input_prompt 与 output_prompt
+        4) 返回 context 与 result
         """
         self._maybe_reload()
 
@@ -272,8 +276,8 @@ class LLM_Prompt_Enhance_Node:
         map_info = self._cached_map_info or {}
         model_info = map_info.get(str(llm_model).replace("：", ":"))
         if not model_info:
-            input_prompt = f"[System] 无法找到模型映射: {llm_model}\n[User] {user_prompt}"
-            return (input_prompt, "模型未配置或配置读取失败")
+            context = f"[System] 无法找到模型映射: {llm_model}\n[User] {user_prompt}"
+            return (context, "模型未配置或配置读取失败")
 
         base_url = (model_info.get("base_url") or "").strip()
         api_key = (model_info.get("api_key") or "").strip()
@@ -289,10 +293,15 @@ class LLM_Prompt_Enhance_Node:
         else:
             system_prompt = sys_templates.get(preset_template) or sys_templates.get("通用增强:图文提示词润色") or ""
 
-        input_prompt = f"[System]\n{system_prompt}\n\n[User]\n{user_prompt}"
+        context = f"[System]\n{system_prompt}\n\n[User]\n{user_prompt}"
 
         if not base_url or not model:
-            return (input_prompt, "base_url 或 model 为空，请检查配置")
+            return (context, "base_url 或 model 为空，请检查配置")
+
+        # 当选择“固定”并且已有缓存时，直接返回缓存，不再请求API
+        if str(control_after_generate).strip() == "固定" and isinstance(self._last_result, str) and self._last_result:
+            print("[LLM Prompt Enhance] control_after_generate=固定，已跳过API请求，复用上一轮缓存结果。")
+            return (context, self._last_result)
 
         ok, result = _chat_completions(
             base_url=base_url,
@@ -305,8 +314,11 @@ class LLM_Prompt_Enhance_Node:
             top_p=float(top_p),
         )
 
-        output_prompt = result if ok else f"请求失败: {result}"
-        return (input_prompt, output_prompt)
+        result = result if ok else f"请求失败: {result}"
+        # 仅当请求成功时更新缓存
+        if ok:
+            self._last_result = result
+        return (context, result)
 
 
 # ComfyUI 节点注册
