@@ -33,20 +33,33 @@ def _preset_dir() -> str:
 
 def _scan_preset_files(dir_path: str) -> List[Tuple[str, str]]:
     """
-    扫描目录，返回 [(显示名, 绝对路径)]，显示名为文件名(不含扩展名)
-    仅包含 .md 模板（不扫描示例）
+    递归扫描目录，返回 [(显示名, 绝对路径)]
+    - 显示名: 从 dir_path 起的相对路径（使用 / 作为分隔符，不含扩展名），如 "01 文生图片/产品海报"
+    - 仅包含 .md 模板（忽略任何层级中以 Example_ 开头的文件）
     """
     items: List[Tuple[str, str]] = []
     if not os.path.exists(dir_path):
         return items
     try:
-        for fname in sorted(os.listdir(dir_path)):
-            base, ext = os.path.splitext(fname)
-            # 仅允许 .md 且排除 Example_ 前缀
-            if ext.lower() == ".md" and not fname.startswith("Example_"):
-                abs_path = os.path.join(dir_path, fname)
-                if os.path.isfile(abs_path):
-                    items.append((base, abs_path))
+        for root, _, files in os.walk(dir_path):
+            for fname in files:
+                base, ext = os.path.splitext(fname)
+                if ext.lower() not in SUPPORTED_EXTS:
+                    continue
+                if fname.startswith("Example_"):
+                    continue
+                abs_path = os.path.join(root, fname)
+                if not os.path.isfile(abs_path):
+                    continue
+                rel_dir = os.path.relpath(root, dir_path)
+                # 构造相对显示名（不含扩展名），用 / 统一分隔
+                if rel_dir == ".":
+                    display = base
+                else:
+                    display = f"{rel_dir.replace(os.sep, '/')}/{base}"
+                items.append((display, abs_path))
+        # 稳定排序：按显示名排序
+        items.sort(key=lambda x: x[0])
     except Exception:
         pass
     return items
@@ -82,7 +95,7 @@ class Load_Preset_Prompt_Node:
         dir_path = _preset_dir()
         options = [name for name, _ in _scan_preset_files(dir_path)]
         if not options:
-            options = ["未发现预设(请在preset_prompts放置.md或.txt)"]
+            options = ["未发现预设(请在preset_prompts放置.md)"]
         return {
             "required": {
                 "role_name": (options,),
@@ -119,21 +132,31 @@ class Load_Preset_Prompt_Node:
         role = str(role_name or "").strip()
         items = self._cache_list or []
         if not items:
-            return ("未发现预设，请在 preset_prompts 目录中添加 .md 或 .txt 文件。", None)
+            return ("未发现预设，请在 preset_prompts 目录中添加 .md 文件。", None)
 
         # 如果 UI 初始状态传入的是提示文案，则直接返回说明
         if role.startswith("未发现预设"):
-            return ("未发现预设，请在 preset_prompts 目录中添加 .md 或 .txt 文件。", None)
+            return ("未发现预设，请在 preset_prompts 目录中添加 .md 文件。", None)
 
+        # 构建映射：显示名(相对路径不含扩展名) -> 绝对路径
         path_map: Dict[str, str] = {name: p for name, p in items}
+
+        # 1) 优先精确匹配：相对路径形式（如 "01 文生图片/产品海报"）
         fpath = path_map.get(role)
+
+        # 2) 若未命中，尝试容错：剥离可能带入的扩展名
         if not fpath:
-            # 仅允许 .md 模板，若传入包含扩展名则剥离后匹配
             base, ext = os.path.splitext(role)
-            if ext.lower() == ".md":
+            if ext:
                 fpath = path_map.get(base)
-                if fpath:
-                    role = base  # 同步 role 用于示例名
+
+        # 3) 若仍未命中，回退到“仅文件名（不含扩展名）”的唯一匹配（兼容旧用法）
+        if not fpath:
+            target_base = (os.path.splitext(role)[0] or "").strip()
+            candidates = [p for name, p in items if os.path.splitext(os.path.basename(p))[0] == target_base]
+            if len(candidates) == 1:
+                fpath = candidates[0]
+
         if not fpath or not os.path.exists(fpath):
             return (f"[未找到预设(.md)] {role}", None)
 
@@ -146,11 +169,17 @@ class Load_Preset_Prompt_Node:
         # 读取示例：仅匹配以 Example_ 开头且 .txt 后缀
         example_preview = None
         try:
-            example_path = os.path.join(_preset_dir(), f"Example_{role}.txt")
-            if os.path.isfile(example_path) and example_path.lower().endswith(".txt"):
-                ex = _read_text(example_path)
-                if ex.strip():
-                    example_preview = ex
+            # 示例优先在模板同目录查找，其次回退到根目录，文件名为 Example_{basename}.txt
+            base_name = os.path.splitext(os.path.basename(fpath))[0]
+            same_dir_example = os.path.join(os.path.dirname(fpath), f"Example_{base_name}.txt")
+            root_example = os.path.join(_preset_dir(), f"Example_{base_name}.txt")
+
+            for example_path in (same_dir_example, root_example):
+                if os.path.isfile(example_path) and example_path.lower().endswith(".txt"):
+                    ex = _read_text(example_path)
+                    if ex.strip():
+                        example_preview = ex
+                        break
         except Exception:
             example_preview = None  # 静默失败
 
