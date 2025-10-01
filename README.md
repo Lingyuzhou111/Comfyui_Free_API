@@ -28,56 +28,56 @@
 
 ## 📖 示例工作流
 
-#### LLM API工作流
-<img width="1046" height="1129" alt="LLM-API示例" src="https://github.com/user-attachments/assets/e499e5a0-0850-47aa-ab1d-8de62cfb2f75" />
+####  新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
+<img width="1730" height="994" alt="00e37c9fdf869fda83b88e90674b30e7" src="https://github.com/user-attachments/assets/70fbacc5-6388-4d10-a8eb-e32f1576873f" />
 
-#### VLM API工作流
-<img width="1893" height="1195" alt="VLM-API示例" src="https://github.com/user-attachments/assets/c81ed02a-94ed-44f5-a9ad-a7add17467f1" />
-
-#### GLM API视频分析工作流
-<img width="1925" height="940" alt="GLM视频推理示例" src="https://github.com/user-attachments/assets/3fc4734f-e53c-4558-b019-6d0eee96aadf" />
-
-#### GLM API文生图工作流
-<img width="1269" height="935" alt="GLM图片生成示例" src="https://github.com/user-attachments/assets/eb13e098-1a28-48a7-8a7a-b71d397a0f22" />
-
-#### Wan2.1图像编辑工作流(该节点已更名为Wanx2.1 Image Edit API节点，与最新的QwenImageEdit节点以示区分)
-<img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
-
-#### Wan2.2文生图工作流
-<img width="1569" height="1150" alt="Wan2 2文生图示例-1" src="https://github.com/user-attachments/assets/6f3527f3-b388-4c11-88f5-6a5044ab2fbc" />
-
-#### Wan2.2文生视频工作流
-<img width="1101" height="1055" alt="Wan2 2文生视频示例" src="https://github.com/user-attachments/assets/139b4157-2d5a-4da5-8ec9-320a1ca2e029" />
-
-#### Wan2.2图生视频工作流
-<img width="1616" height="1059" alt="Wan2 2图生视频示例" src="https://github.com/user-attachments/assets/2c5edd80-8451-400b-8cdf-4e2645176623" />
-
-#### Wan2.1首尾帧生视频工作流
-<img width="1458" height="1168" alt="Wan2 1首尾帧生视频示例" src="https://github.com/user-attachments/assets/e1541ca4-c1a5-4617-a9b7-baee9eb51499" />
-
-#### 新增支持硅基流动、火山方舟、魔搭等API平台的图像生成和调用第三方gpt-image-1的API进行多图编辑
-<img width="1650" height="1149" alt="OpenAI兼容格式文生图-1" src="https://github.com/user-attachments/assets/65d81826-91a5-42c1-bf7e-5febed60d51f" />
-<img width="1995" height="718" alt="OpenAI兼容格式文生图-2" src="https://github.com/user-attachments/assets/c73ce3d3-fcd1-4e35-a4d8-53e5f1537a77" />
-
-#### 新增支持Qwen-TTS的语言合成，Siliconflow-TTS的语音合成和语音识别节点
-<img width="2330" height="979" alt="wechat_2025-08-18_060009_885" src="https://github.com/user-attachments/assets/ec6614d1-20e1-42b5-a003-73f93b8cec58" />
-<img width="2130" height="910" alt="wechat_2025-08-18_060849_384" src="https://github.com/user-attachments/assets/690a2083-534f-45ec-abba-410c7cc19c41" />
-
-####  Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
-<img width="2173" height="886" alt="wechat_2025-08-19_172042_625" src="https://github.com/user-attachments/assets/a857e7b2-234a-4c17-b0c9-eb91683a61e6" />
-
-####  新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
-<img width="2165" height="888" alt="wechat_2025-08-19_172109_520" src="https://github.com/user-attachments/assets/d205a80a-2d42-4062-a8ce-b09b4435cb2d" />
+####  新增Free Translate节点支持免费的多语种翻译
+<img width="875" height="916" alt="7d05c199efb0a0daaebbcc840b181848" src="https://github.com/user-attachments/assets/8a758798-5b7e-409d-9abf-c35651d82028" />
 
 ####  新增LLM Prompt Enhance和VLM Prompt Enhance节点支持预设提示增强功能
 <img width="1825" height="1128" alt="b566b6f819bf68a377ac0fb2519f78d0" src="https://github.com/user-attachments/assets/5d77442d-a308-4dc0-8489-9c52d575a45a" />
 <img width="1836" height="1205" alt="2df8b526c32ecdd4d20bacd7454a4c05" src="https://github.com/user-attachments/assets/3d97deeb-2406-4e6f-8e4b-b3c6d6aa119b" />
 
-####  新增Free Translate节点支持免费的多语种翻译
-<img width="875" height="916" alt="7d05c199efb0a0daaebbcc840b181848" src="https://github.com/user-attachments/assets/8a758798-5b7e-409d-9abf-c35651d82028" />
+####  新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
+<img width="2165" height="888" alt="wechat_2025-08-19_172109_520" src="https://github.com/user-attachments/assets/d205a80a-2d42-4062-a8ce-b09b4435cb2d" />
 
-####  新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
-<img width="1730" height="994" alt="00e37c9fdf869fda83b88e90674b30e7" src="https://github.com/user-attachments/assets/70fbacc5-6388-4d10-a8eb-e32f1576873f" />
+####  Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
+<img width="2173" height="886" alt="wechat_2025-08-19_172042_625" src="https://github.com/user-attachments/assets/a857e7b2-234a-4c17-b0c9-eb91683a61e6" />
+
+#### 新增支持Qwen-TTS的语言合成，Siliconflow-TTS的语音合成和语音识别节点
+<img width="2330" height="979" alt="wechat_2025-08-18_060009_885" src="https://github.com/user-attachments/assets/ec6614d1-20e1-42b5-a003-73f93b8cec58" />
+<img width="2130" height="910" alt="wechat_2025-08-18_060849_384" src="https://github.com/user-attachments/assets/690a2083-534f-45ec-abba-410c7cc19c41" />
+
+#### 新增支持硅基流动、火山方舟、魔搭等API平台的图像生成和调用第三方gpt-image-1的API进行多图编辑
+<img width="1650" height="1149" alt="OpenAI兼容格式文生图-1" src="https://github.com/user-attachments/assets/65d81826-91a5-42c1-bf7e-5febed60d51f" />
+<img width="1995" height="718" alt="OpenAI兼容格式文生图-2" src="https://github.com/user-attachments/assets/c73ce3d3-fcd1-4e35-a4d8-53e5f1537a77" />
+
+#### Wan2.1首尾帧生视频工作流
+<img width="1458" height="1168" alt="Wan2 1首尾帧生视频示例" src="https://github.com/user-attachments/assets/e1541ca4-c1a5-4617-a9b7-baee9eb51499" />
+
+#### Wan2.2图生视频工作流
+<img width="1616" height="1059" alt="Wan2 2图生视频示例" src="https://github.com/user-attachments/assets/2c5edd80-8451-400b-8cdf-4e2645176623" />
+
+#### Wan2.2文生视频工作流
+<img width="1101" height="1055" alt="Wan2 2文生视频示例" src="https://github.com/user-attachments/assets/139b4157-2d5a-4da5-8ec9-320a1ca2e029" />
+
+#### Wan2.2文生图工作流
+<img width="1569" height="1150" alt="Wan2 2文生图示例-1" src="https://github.com/user-attachments/assets/6f3527f3-b388-4c11-88f5-6a5044ab2fbc" />
+
+#### Wan2.1图像编辑工作流(该节点已更名为Wanx2.1 Image Edit API节点，与最新的QwenImageEdit节点以示区分)
+<img width="1383" height="958" alt="Qwen-ImageEdit示例" src="https://github.com/user-attachments/assets/c9d65c6f-9662-4af3-849a-989b44e889f5" />
+
+#### GLM API文生图工作流
+<img width="1269" height="935" alt="GLM图片生成示例" src="https://github.com/user-attachments/assets/eb13e098-1a28-48a7-8a7a-b71d397a0f22" />
+
+#### GLM API视频分析工作流
+<img width="1925" height="940" alt="GLM视频推理示例" src="https://github.com/user-attachments/assets/3fc4734f-e53c-4558-b019-6d0eee96aadf" />
+
+#### VLM API工作流
+<img width="1893" height="1195" alt="VLM-API示例" src="https://github.com/user-attachments/assets/c81ed02a-94ed-44f5-a9ad-a7add17467f1" />
+
+#### LLM API工作流
+<img width="1046" height="1129" alt="LLM-API示例" src="https://github.com/user-attachments/assets/e499e5a0-0850-47aa-ab1d-8de62cfb2f75" />
 
 ## 🚀 功能特性 
 
@@ -209,6 +209,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
