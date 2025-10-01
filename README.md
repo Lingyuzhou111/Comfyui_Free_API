@@ -24,6 +24,8 @@
 
 > **250912** ：新增Free Translate节点支持免费的多语种翻译
 
+> **251001** ：新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
+
 ## 📖 示例工作流
 
 #### LLM API工作流
@@ -73,6 +75,9 @@
 
 ####  新增Free Translate节点支持免费的多语种翻译
 <img width="875" height="916" alt="7d05c199efb0a0daaebbcc840b181848" src="https://github.com/user-attachments/assets/8a758798-5b7e-409d-9abf-c35651d82028" />
+
+####  新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
+<img width="1730" height="994" alt="00e37c9fdf869fda83b88e90674b30e7" src="https://github.com/user-attachments/assets/70fbacc5-6388-4d10-a8eb-e32f1576873f" />
 
 ## 🚀 功能特性 
 
@@ -204,6 +209,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
