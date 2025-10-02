@@ -3,7 +3,7 @@ import requests
 import re
 import time
 from typing import Optional, Any
-from comfy_api_nodes.apinode_utils import download_url_to_video_output
+from comfy_api_nodes.apinode_utils import VideoFromFile
 
 class OpenAISoraAPI:
     """
@@ -38,6 +38,9 @@ class OpenAISoraAPI:
             "optional": {
                 # 可选图像输入：提供则走“图生视频（image-to-video）”，不提供则为“文生视频（text-to-video）”
                 "image": ("IMAGE",),
+                # 新版302AI接口兼容参数：async与callback
+                "async_flag": ("BOOLEAN", {"default": False}),
+                "callback": ("STRING", {"default": "", "multiline": False}),
             }
         }
 
@@ -46,7 +49,7 @@ class OpenAISoraAPI:
     FUNCTION = "generate"
     CATEGORY = "🦉FreeAPI/OpenAI"
 
-    def generate(self, base_url, model, api_key, user_prompt, image=None):
+    def generate(self, base_url, model, api_key, user_prompt, image=None, async_flag=False, callback=""):
         """
         调用 302.ai 的 sora-2 模型进行视频生成（流式）。
         请求：
@@ -76,7 +79,19 @@ class OpenAISoraAPI:
 
         try:
             headers = self._build_headers(api_key)
-            api_url = f"{base_url.rstrip('/')}/chat/completions"
+            # 兼容新版302AI：支持在URL上附加 async 与 callback 参数
+            base_path = f"{base_url.rstrip('/')}/chat/completions"
+            query_params = []
+            # 仅当用户显式设置时附加 async=false/true
+            if isinstance(async_flag, bool):
+                query_params.append(f"async={'true' if async_flag else 'false'}")
+            # 如提供callback则附加
+            if isinstance(callback, str) and callback.strip():
+                # 对callback进行URL编码，避免特殊字符影响请求
+                from urllib.parse import quote_plus
+                cb = quote_plus(callback.strip())
+                query_params.append(f"callback={cb}")
+            api_url = base_path if not query_params else f"{base_path}?{'&'.join(query_params)}"
 
             # 构建聊天内容：
             # - 若提供 image：按 OpenAI 多模态格式使用 content 数组，携带文本与图片
@@ -113,10 +128,10 @@ class OpenAISoraAPI:
             payload = {
                 "model": model,
                 "messages": messages,
-                "stream": True
+                "stream": False
             }
 
-            print(f"[OpenAISoraAPI] 请求: {api_url} (chat/completions, stream=True)")
+            print(f"[OpenAISoraAPI] 请求: {api_url} (chat/completions, stream=False)")
             print(f"[OpenAISoraAPI] 模型: {model}")
             # 打印裁剪后的提示词，便于用户确认任务内容
             _preview = (user_prompt[:120] + "...") if len(user_prompt) > 120 else user_prompt
@@ -126,20 +141,20 @@ class OpenAISoraAPI:
                 print(f"[OpenAISoraAPI] 请求载荷(精简): {self._safe_json_dumps(payload)}")
             except Exception:
                 pass
-            resp = requests.post(api_url, headers=headers, json=payload, timeout=600, stream=True)
+            resp = requests.post(api_url, headers=headers, json=payload, timeout=600, stream=False)
             print(f"[OpenAISoraAPI] 响应状态码: {resp.status_code}")
 
             if resp.status_code != 200:
                 return (None, f"API错误 (状态码: {resp.status_code}): {resp.text}", "")
 
-            reasoning_content, answer, tokens_usage = self._parse_302_stream(resp)
+            rc2, answer, tokens_usage = self._parse_non_stream(resp)
 
-            # 若流式无内容，降级为非流式
-            if not answer:
+            # 若流式无内容或解析失败，降级为非流式
+            if (not answer) or (isinstance(answer, str) and answer.startswith("流式解析失败")):
                 try:
                     safe_payload = dict(payload)
                     safe_payload["stream"] = False
-                    print(f"[OpenAISoraAPI] 流式无增量，降级为非流式请求")
+                    print(f"[OpenAISoraAPI] 流式不可用（原因: {answer[:120] if isinstance(answer, str) else '未知'}），降级为非流式请求")
                     resp2 = requests.post(api_url, headers=headers, json=safe_payload, timeout=600)
                     if resp2.status_code == 200:
                         rc2, answer2, tu2 = self._parse_non_stream(resp2)
@@ -147,12 +162,52 @@ class OpenAISoraAPI:
                         video2 = self._download_and_convert_video(video_url2)
                         return (video2, video_url2 or "", tu2)
                     else:
-                        return (None, f"非流式降级失败 (状态码: {resp2.status_code}): {resp2.text}", tokens_usage)
+                        return (None, f"非流式降级失败 (状态码: {resp2.status码}): {resp2.text}", tokens_usage)
                 except Exception as _e:
                     print(f"[OpenAISoraAPI] 非流式降级异常: {_e}")
 
             # 正常流式结果：提取视频URL并下载
             video_url = self._extract_video_url(answer)
+
+            # 若未能提取到视频URL，记录第一阶段的详细摘要，便于后续二阶段轮询
+            if not video_url:
+                try:
+                    print("[OpenAISoraAPI] ⚠ 未提取到视频直链，输出流式文本摘要以便二阶段轮询")
+                    # 打印首末片段（避免刷屏）
+                    preview_head = answer[:400] if isinstance(answer, str) else ""
+                    preview_tail = answer[-400:] if isinstance(answer, str) else ""
+                    print(f"[OpenAISoraAPI] ▶ 首段(最多400字): {preview_head}")
+                    if len(answer or "") > 800:
+                        print("[OpenAISoraAPI] ... (中间省略)")
+                    print(f"[OpenAISoraAPI] ◀ 末段(最多400字): {preview_tail}")
+                    # 提取可能的任务ID或进度信息
+                    try:
+                        # 常见任务/作业ID样式
+                        task_id_matches = re.findall(r'(?i)(task[_\s-]?id|job[_\s-]?id|task|job)\s*[:=]\s*([a-zA-Z0-9\-_]+)', answer or "")
+                        if task_id_matches:
+                            # 打印前3个
+                            sample_ids = [m[1] for m in task_id_matches[:3]]
+                            print(f"[OpenAISoraAPI] 可能的任务ID: {', '.join(sample_ids)}")
+                    except Exception as _id_e:
+                        print(f"[OpenAISoraAPI] 任务ID提取异常: {_id_e}")
+                    # 收集所有URL，帮助定位任务详情页
+                    try:
+                        all_urls = re.findall(r'https?://[^\s)>\]]+', answer or "", flags=re.IGNORECASE)
+                        if all_urls:
+                            # 去重并打印前5个
+                            uniq_urls = []
+                            for u in all_urls:
+                                if u not in uniq_urls:
+                                    uniq_urls.append(u)
+                            print(f"[OpenAISoraAPI] 文本中发现的URL({min(len(uniq_urls),5)}个示例): {uniq_urls[:5]}")
+                        else:
+                            print("[OpenAISoraAPI] 文本中未发现任何URL")
+                    except Exception as _url_e:
+                        print(f"[OpenAISoraAPI] URL提取异常: {_url_e}")
+                    print("[OpenAISoraAPI] 建议：依据任务ID或上述URL进行二阶段轮询/查询，以获取视频直链(mp4/webm)")
+                except Exception as _log_e:
+                    print(f"[OpenAISoraAPI] 摘要日志输出异常: {_log_e}")
+
             video_output = self._download_and_convert_video(video_url)
             return (video_output, video_url or "", tokens_usage)
         except requests.exceptions.ConnectTimeout as e:
@@ -336,6 +391,14 @@ class OpenAISoraAPI:
 
             # 合并并做简单的编码清理
             answer = self._normalize_text("".join(answer_parts).strip())
+            try:
+                total_len = len(answer or "")
+                print(f"[OpenAISoraAPI] 流式结束，累计字符={total_len}")
+                if total_len:
+                    head = answer[:300]
+                    print(f"[OpenAISoraAPI] 流式文本首段(最多300字): {head}")
+            except Exception as _sum_e:
+                print(f"[OpenAISoraAPI] 流式摘要输出异常: {_sum_e}")
             return ("", answer, tokens_usage)
         except Exception as e:
             return ("", f"流式解析失败: {e}", tokens_usage)
@@ -478,9 +541,9 @@ class OpenAISoraAPI:
 
     def _download_and_convert_video(self, video_url: str) -> Optional[Any]:
         """
-        下载视频URL并转换为VIDEO对象，参考 jimeng_video_node.py 的实现。
-        - 校验URL合法性
-        - 使用 download_url_to_video_output(video_url, timeout=120)
+        下载视频URL并转换为VIDEO对象（同步实现）。
+        - 使用 requests 同步下载到内存(BytesIO)，再构造 VideoFromFile
+        - 不依赖事件循环/协程，保证返回真实 VIDEO 对象
         - 出错返回 None，保证节点稳定
         """
         try:
@@ -492,12 +555,29 @@ class OpenAISoraAPI:
                 return None
 
             print(f"[OpenAISoraAPI] 🎬 开始下载视频: {video_url[:80]}...")
+            import io as _io
             try:
-                video_output = download_url_to_video_output(video_url, timeout=120)
+                # 同步下载到内存
+                with requests.get(video_url, timeout=120, stream=True) as r:
+                    r.raise_for_status()
+                    buf = _io.BytesIO()
+                    for chunk in r.iter_content(chunk_size=1024 * 256):
+                        if chunk:
+                            buf.write(chunk)
+                    buf.seek(0)
+                # 构造 Comfy VIDEO 对象
+                video_output = VideoFromFile(buf)
+                # 基本类型校验
+                if not hasattr(video_output, "get_dimensions"):
+                    print(f"[OpenAISoraAPI] ❌ 视频对象类型异常：{type(video_output)}，缺少 get_dimensions()")
+                    return None
                 print(f"[OpenAISoraAPI] ✅ 视频下载完成")
                 return video_output
-            except Exception as download_error:
-                print(f"[OpenAISoraAPI] ❌ 视频下载失败: {download_error}")
+            except requests.exceptions.RequestException as req_err:
+                print(f"[OpenAISoraAPI] ❌ 视频下载失败(网络): {req_err}")
+                return None
+            except Exception as conv_err:
+                print(f"[OpenAISoraAPI] ❌ 视频构造失败: {conv_err}")
                 return None
         except Exception as e:
             print(f"[OpenAISoraAPI] 视频下载转换过程出错: {e}")
