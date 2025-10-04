@@ -9,7 +9,7 @@ class OpenAISoraAPI:
     """
     ComfyUI自定义节点：302.ai Sora-2 视频生成（OpenAI兼容流式接口）
     - 参考 openai_chat_api_node.py 的结构与风格
-    - 通过 302.ai 的 /chat/completions 接口，以 stream=True 获取流式增量内容
+    - 通过 302.ai 的 /chat/completions 接口，以 stream=False 获取非流式响应
     - 适配示例返回：每行均为 JSON，字段为 choices[0].delta.content
     - 超时时间：600 秒（10 分钟）
     输入参数：
@@ -541,44 +541,44 @@ class OpenAISoraAPI:
 
     def _download_and_convert_video(self, video_url: str) -> Optional[Any]:
         """
-        下载视频URL并转换为VIDEO对象（同步实现）。
-        - 使用 requests 同步下载到内存(BytesIO)，再构造 VideoFromFile
-        - 不依赖事件循环/协程，保证返回真实 VIDEO 对象
+        直接复用 DownloadVideoFromUrlNode 的同步实现：
+        - 支持多行/列表/字典输入的 URL 合并与协议修复
+        - UA 轮换、重试策略、可选跳过 URL 测试
+        - 同步下载到临时文件并返回 VideoFromFile
         - 出错返回 None，保证节点稳定
         """
         try:
-            if not video_url or not isinstance(video_url, str):
-                print(f"[OpenAISoraAPI] 无效的视频URL: {video_url}")
-                return None
-            if not video_url.startswith(("http://", "https://")):
-                print(f"[OpenAISoraAPI] 不支持的URL格式: {video_url}")
+            # 延迟导入，避免模块加载顺序问题
+            try:
+                from custom_nodes.Comfyui_Free_API.OpenAI_Node.download_video_from_url import DownloadVideoFromUrlNode
+            except Exception:
+                # 兼容相对导入
+                from .download_video_from_url import DownloadVideoFromUrlNode  # type: ignore
+
+            # 实例化下载节点并调用其成熟实现
+            helper = DownloadVideoFromUrlNode()
+            video_obj, status_info = helper.convert_url_to_video(
+                video_url=video_url,
+                timeout=120,
+                max_retries=3,
+                retry_delay=2,
+                user_agent_type="Chrome桌面版",
+                skip_url_test=False,
+                custom_user_agent=""
+            )
+
+            # 基本类型校验
+            if not hasattr(video_obj, "get_dimensions"):
+                print(f"[OpenAISoraAPI] ❌ 视频对象类型异常：{type(video_obj)}，缺少 get_dimensions()")
                 return None
 
-            print(f"[OpenAISoraAPI] 🎬 开始下载视频: {video_url[:80]}...")
-            import io as _io
+            # 附带打印下载状态，便于调试
             try:
-                # 同步下载到内存
-                with requests.get(video_url, timeout=120, stream=True) as r:
-                    r.raise_for_status()
-                    buf = _io.BytesIO()
-                    for chunk in r.iter_content(chunk_size=1024 * 256):
-                        if chunk:
-                            buf.write(chunk)
-                    buf.seek(0)
-                # 构造 Comfy VIDEO 对象
-                video_output = VideoFromFile(buf)
-                # 基本类型校验
-                if not hasattr(video_output, "get_dimensions"):
-                    print(f"[OpenAISoraAPI] ❌ 视频对象类型异常：{type(video_output)}，缺少 get_dimensions()")
-                    return None
-                print(f"[OpenAISoraAPI] ✅ 视频下载完成")
-                return video_output
-            except requests.exceptions.RequestException as req_err:
-                print(f"[OpenAISoraAPI] ❌ 视频下载失败(网络): {req_err}")
-                return None
-            except Exception as conv_err:
-                print(f"[OpenAISoraAPI] ❌ 视频构造失败: {conv_err}")
-                return None
+                print(f"[OpenAISoraAPI] ✅ DownloadVideoFromUrl 状态:\n{status_info}")
+            except Exception:
+                pass
+
+            return video_obj
         except Exception as e:
             print(f"[OpenAISoraAPI] 视频下载转换过程出错: {e}")
             return None
