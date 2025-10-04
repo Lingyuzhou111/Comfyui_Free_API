@@ -36,6 +36,24 @@ except ImportError as e:
     OPENAI_SORA_NODE_MAPPINGS = {}
     OPENAI_SORA_DISPLAY_MAPPINGS = {}
 
+# 导入OpenAI Sora 异步视频生成与查询节点
+try:
+    from OpenAI_Node.openai_sora_api_async import NODE_CLASS_MAPPINGS as OPENAI_SORA_ASYNC_NODE_MAPPINGS
+    from OpenAI_Node.openai_sora_api_async import NODE_DISPLAY_NAME_MAPPINGS as OPENAI_SORA_ASYNC_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import OpenAI_Node.openai_sora_api_async: {e}")
+    OPENAI_SORA_ASYNC_NODE_MAPPINGS = {}
+    OPENAI_SORA_ASYNC_DISPLAY_MAPPINGS = {}
+
+# 导入通用视频URL转VIDEO节点
+try:
+    from OpenAI_Node.download_video_from_url import NODE_CLASS_MAPPINGS as DOWNLOAD_VIDEO_NODE_MAPPINGS
+    from OpenAI_Node.download_video_from_url import NODE_DISPLAY_NAME_MAPPINGS as DOWNLOAD_VIDEO_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import OpenAI_Node: {e}")
+    DOWNLOAD_VIDEO_NODE_MAPPINGS = {}
+    DOWNLOAD_VIDEO_DISPLAY_MAPPINGS = {}  
+
 # 导入GLM LLM API节点
 try:
     from GLM_Node.glm_llm_api_node import NODE_CLASS_MAPPINGS as GLM_LLM_NODE_MAPPINGS
@@ -366,6 +384,14 @@ NODE_DISPLAY_NAME_MAPPINGS.update(OPENAI_IMAGE_DISPLAY_MAPPINGS)
 NODE_CLASS_MAPPINGS.update(OPENAI_SORA_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(OPENAI_SORA_DISPLAY_MAPPINGS)
 
+# 添加OpenAI Sora 异步任务节点（提交与查询）
+NODE_CLASS_MAPPINGS.update(OPENAI_SORA_ASYNC_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(OPENAI_SORA_ASYNC_DISPLAY_MAPPINGS)
+
+# 添加通用视频URL转VIDEO节点
+NODE_CLASS_MAPPINGS.update(DOWNLOAD_VIDEO_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(DOWNLOAD_VIDEO_DISPLAY_MAPPINGS)
+
 # 添加ModelScope Image Web节点
 NODE_CLASS_MAPPINGS.update(MODELSCOPE_IMAGE_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(MODELSCOPE_IMAGE_DISPLAY_MAPPINGS)
@@ -395,6 +421,7 @@ WEB_DIRECTORY = "web"
 
 # 导出节点映射，供ComfyUI使用
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
+
 
 
 
