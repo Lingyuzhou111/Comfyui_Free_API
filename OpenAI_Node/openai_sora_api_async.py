@@ -248,6 +248,31 @@ class OpenAISoraAPIAsyncCheck:
         - video_url: 字符串；已完成时返回直链，未完成或无结果为空串
         - status: 当前任务状态（如 created, processing, completed, failed 等）
     """
+    # 记录已完成的任务ID，用于使 IS_CHANGED 在完成后返回稳定键以启用缓存
+    _completed_tasks = set()
+
+    @classmethod
+    def IS_CHANGED(cls, base_url, api_key, task_id):
+        """
+        返回用于缓存判定的变化键：
+        - 未完成任务：返回带时间因子的哈希，确保每次运行都会执行
+        - 已完成任务：返回稳定哈希，使缓存生效，避免重复请求
+        """
+        try:
+            import hashlib, time
+            tid = (task_id or "").strip()
+            # 稳定键仅依赖稳定输入；api_key仅取后8位以避免泄露，且稳定
+            stable_key_src = f"{base_url}|{api_key[-8:]}|{tid}"
+            stable_hash = hashlib.sha256(stable_key_src.encode("utf-8")).hexdigest()
+            # 已完成：返回稳定键，启用缓存
+            if tid and tid in cls._completed_tasks:
+                return stable_hash
+            # 未完成：加入时间因子，确保每次不同，强制执行
+            nonce_src = f"{stable_key_src}|{time.time_ns()}"
+            return hashlib.sha256(nonce_src.encode("utf-8")).hexdigest()
+        except Exception:
+            # 任何异常下都强制执行
+            return str(__import__("time").time_ns())
 
     def __init__(self):
         pass
@@ -324,6 +349,13 @@ class OpenAISoraAPIAsyncCheck:
                 status_cn = "进行中"
             else:
                 status_cn = "未知"
+
+            # 若已完成，记录 task_id，使 IS_CHANGED 返回稳定键以启用缓存
+            try:
+                if status_raw in ("completed", "succeeded", "success"):
+                    self.__class__._completed_tasks.add(task_id.strip())
+            except Exception:
+                pass
 
             # 任务类型推断：若响应里出现与图像相关的输入字段则判定为图生视频，否则默认文生视频
             task_type = "文生视频"
