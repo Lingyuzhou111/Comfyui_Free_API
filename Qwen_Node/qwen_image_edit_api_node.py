@@ -15,7 +15,7 @@ class QwenImageEditAPI:
     """
     ComfyUI自定义节点：Qwen Image Edit API
     实现图像编辑API调用，基于最新的qwen-image-edit模型，参数自动读取config.json。
-    输入参数：prompt(必选), image(必选)
+    输入参数：prompt(必选), image1(必选), image2(可选), image3(可选)
     输出：image（编辑后的图像）
     """
     def __init__(self):
@@ -34,9 +34,11 @@ class QwenImageEditAPI:
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "将图中的人物改为站立姿势", "tooltip": "编辑指令，描述你想要对图像进行的修改"}),
-                "image": ("IMAGE", {"tooltip": "需要编辑的输入图像"}),
+                "image1": ("IMAGE", {"tooltip": "参考图1（必选）"}),
             },
             "optional": {
+                "image2": ("IMAGE", {"tooltip": "参考图2（可选）"}),
+                "image3": ("IMAGE", {"tooltip": "参考图3（可选）"}),
                 "negative_prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "反向提示词，描述不希望看到的内容"}),
                 "prompt_extend": ("BOOLEAN", {"default": True, "tooltip": "是否开启智能改写，对短提示词效果提升明显"}),
                 "watermark": ("BOOLEAN", {"default": False, "tooltip": "是否添加水印标识"}),
@@ -48,7 +50,7 @@ class QwenImageEditAPI:
     FUNCTION = "edit_image"
     CATEGORY = "🦉FreeAPI/Qwen"
 
-    def edit_image(self, prompt, image, negative_prompt="", prompt_extend=True, watermark=False):
+    def edit_image(self, prompt, image1, image2=None, image3=None, negative_prompt="", prompt_extend=True, watermark=False):
         """
         主编辑方法：
         1. 将输入图像转换为base64或上传到云端获取URL
@@ -57,7 +59,9 @@ class QwenImageEditAPI:
         
         Args:
             prompt: 编辑指令
-            image: 输入图像
+            image1: 第1张参考图（必选）
+            image2: 第2张参考图（可选）
+            image3: 第3张参考图（可选）
             negative_prompt: 反向提示词(可选)
             prompt_extend: 是否开启智能改写(可选)
             watermark: 是否添加水印(可选)
@@ -65,7 +69,9 @@ class QwenImageEditAPI:
         logger.info(f"[QwenImageEditAPI] 开始图像编辑...")
         logger.info(f"[QwenImageEditAPI] 编辑指令: {prompt}")
         logger.info(f"[QwenImageEditAPI] 智能改写: {'开启' if prompt_extend else '关闭'}")
-        logger.info(f"[QwenImageEditAPI] 输入图像: {image.shape}")
+        images_input = [img for img in [image1, image2, image3] if img is not None]
+        original_first_image = images_input[0] if images_input else image1
+        logger.info(f"[QwenImageEditAPI] 输入图像张数: {len(images_input)}")
         logger.info(f"[QwenImageEditAPI] 负面提示词: {negative_prompt if negative_prompt else '无'}")
         logger.info(f"[QwenImageEditAPI] 水印: {'开启' if watermark else '关闭'}")
         
@@ -76,31 +82,29 @@ class QwenImageEditAPI:
         
         if not api_key:
             logger.error("[QwenImageEditAPI] 未配置Qwen API Key")
-            return (image, "", "错误：未配置API Key")
+            return (original_first_image, "", "错误：未配置API Key")
         
-        # 1. 图片转base64格式
+        # 1. 多图转base64格式并构造content
         try:
-            image_base64 = self._image_to_base64(image)
-            logger.info(f"[QwenImageEditAPI] 📷 图片已转换为base64格式")
+            content_items = []
+            for idx, img in enumerate(images_input, start=1):
+                img_b64 = self._image_to_base64(img)
+                logger.info(f"[QwenImageEditAPI] 📷 图{idx}已转换为base64格式")
+                content_items.append({"image": img_b64})
+            # 追加文本指令，紧随所有图片之后
+            content_items.append({"text": prompt})
         except Exception as e:
             logger.error(f"[QwenImageEditAPI] ❌ 图片转base64失败: {e}")
-            return (image, "", f"错误：图片转base64失败 - {e}")
+            return (original_first_image, "", f"错误：图片转base64失败 - {e}")
         
-        # 2. 构造API请求
+        # 2. 构造API请求（多图按顺序放入content）
         payload = {
             "model": model,
             "input": {
                 "messages": [
                     {
                         "role": "user",
-                        "content": [
-                            {
-                                "image": image_base64
-                            },
-                            {
-                                "text": prompt
-                            }
-                        ]
+                        "content": content_items
                     }
                 ]
             },
@@ -139,7 +143,7 @@ class QwenImageEditAPI:
                 
                 if image_content:
                     logger.info("[QwenImageEditAPI] 🖼️ 获取到编辑结果，开始下载...")
-                    edited_image = self._download_and_convert_image(image_content, image)
+                    edited_image = self._download_and_convert_image(image_content, original_first_image)
                     
                     # 生成编辑信息
                     edit_info = {
@@ -154,17 +158,17 @@ class QwenImageEditAPI:
                     return (edited_image, image_content, json.dumps(edit_info, ensure_ascii=False, indent=2))
                 else:
                     logger.error("[QwenImageEditAPI] ❌ 响应中未找到图像内容")
-                    return (image, "", "错误：响应中未找到图像内容")
+                    return (original_first_image, "", "错误：响应中未找到图像内容")
             else:
                 logger.error("[QwenImageEditAPI] ❌ 响应格式异常")
-                return (image, "", "错误：响应格式异常")
+                return (original_first_image, "", "错误：响应格式异常")
                 
         except requests.exceptions.RequestException as e:
             logger.error(f"[QwenImageEditAPI] ❌ API请求失败: {e}")
-            return (image, "", f"错误：API请求失败 - {e}")
+            return (original_first_image, "", f"错误：API请求失败 - {e}")
         except Exception as e:
             logger.error(f"[QwenImageEditAPI] ❌ 处理失败: {e}")
-            return (image, "", f"错误：处理失败 - {e}")
+            return (original_first_image, "", f"错误：处理失败 - {e}")
 
     def _image_to_base64(self, image):
         """
