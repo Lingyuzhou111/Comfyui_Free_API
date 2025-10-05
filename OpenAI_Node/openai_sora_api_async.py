@@ -78,7 +78,7 @@ class OpenAISoraAPIAsyncSubmit:
             try:
                 data_url = self._image_to_data_url(image)
                 if data_url:
-                    payload["image"] = data_url
+                    payload["images"] = [data_url]
                     # 打印时避免输出完整base64
                     print("[OpenAISoraAPIAsyncSubmit] 已附带输入图像(image-to-video)，使用 data URL (已截断日志)")
             except Exception as e:
@@ -263,7 +263,7 @@ class OpenAISoraAPIAsyncCheck:
         }
 
     RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("video_url", "status")
+    RETURN_NAMES = ("status_info", "video_url")
     FUNCTION = "check"
     CATEGORY = "🦉FreeAPI/OpenAI"
 
@@ -293,36 +293,87 @@ class OpenAISoraAPIAsyncCheck:
             print(f"[OpenAISoraAPIAsyncCheck] 状态码: {resp.status_code}")
 
             if resp.status_code != 200:
-                return ("", json.dumps({"code": resp.status_code, "message": resp.text}, ensure_ascii=False))
+                # 非200：构造可读状态
+                _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
+                status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：HTTP {resp.status_code}"
+                return (status_pretty, "")
 
             data = resp.json()
             if not isinstance(data, dict):
-                return ("", json.dumps({"error": "API响应格式异常：非JSON对象", "raw": resp.text}, ensure_ascii=False))
+                _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
+                status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：API响应格式异常：非JSON对象"
+                return (status_pretty, "")
 
             code = data.get("code")
             if code != 200:
-                return ("", json.dumps(data, ensure_ascii=False))
+                _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
+                msg = data.get("message", "接口返回非200")
+                status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：{msg}"
+                return (status_pretty, "")
 
             d = data.get("data") or {}
-            status = d.get("status") or d.get("Status") or ""
+            status_raw = (d.get("status") or d.get("Status") or "").strip().lower()
             outputs = d.get("outputs") or []
-            status_out = json.dumps(data, ensure_ascii=False)
 
-            print(f"[OpenAISoraAPIAsyncCheck] 任务状态: {status}")
+            # 映射中文状态
+            if status_raw in ("completed", "succeeded", "success"):
+                status_cn = "已完成"
+            elif status_raw in ("failed", "error", "canceled", "cancelled"):
+                status_cn = "生成失败"
+            elif status_raw in ("created", "processing", "queued", "running", "in_progress"):
+                status_cn = "进行中"
+            else:
+                status_cn = "未知"
+
+            # 任务类型推断：若响应里出现与图像相关的输入字段则判定为图生视频，否则默认文生视频
+            task_type = "文生视频"
+            try:
+                inputs_like = d.get("inputs") or d.get("input") or {}
+                if isinstance(inputs_like, dict):
+                    if any(k in inputs_like for k in ("image", "image_url", "imageUrl")):
+                        task_type = "图生视频"
+                # 有些服务会把原始请求体透传在 data.request
+                req_like = d.get("request") or {}
+                if isinstance(req_like, dict) and any(k in req_like for k in ("image", "image_url", "imageUrl")):
+                    task_type = "图生视频"
+            except Exception:
+                pass
+
+            created_at = d.get("created_at") or d.get("createdAt") or "-"
+            full_id = d.get("id") or task_id or "-"
+            task_id_short = str(full_id).split(":")[-1] if isinstance(full_id, str) else str(full_id)
+
+            video_url = ""
             if isinstance(outputs, list) and outputs:
-                # 接口成功示例中 outputs 是含有直链的列表
-                video_url = outputs[0]
-                print(f"[OpenAISoraAPIAsyncCheck] 返回视频URL: {video_url}")
-                return (str(video_url), status_out)
+                video_url = str(outputs[0])
 
-            # 未完成或暂无输出
-            return ("", status_out)
+            # 可读格式
+            vlink_disp = video_url if video_url else "等待返回"
+            status_pretty = (
+                f"♻️ 任务状态：{status_cn}\n"
+                f"🎨 任务类型：{task_type}\n"
+                f"⌚️ 创建时间：{created_at}\n"
+                f"🔖 任务ID：{task_id_short}\n"
+                f"🔗 视频链接: {vlink_disp}"
+            )
+
+            print(f"[OpenAISoraAPIAsyncCheck] 任务状态: {status_raw} → {status_cn}")
+            if video_url:
+                print(f"[OpenAISoraAPIAsyncCheck] 返回视频URL: {video_url}")
+
+            return (status_pretty, video_url)
         except requests.exceptions.Timeout:
-            return ("", json.dumps({"error": "请求超时，请稍后重试"}, ensure_ascii=False))
+            _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
+            status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：请求超时，请稍后重试"
+            return (status_pretty, "")
         except requests.exceptions.RequestException as e:
-            return ("", json.dumps({"error": f"网络错误: {e}"}, ensure_ascii=False))
+            _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
+            status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：网络错误: {e}"
+            return (status_pretty, "")
         except Exception as e:
-            return ("", json.dumps({"error": f"查询失败: {e}"}, ensure_ascii=False))
+            _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
+            status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：查询失败: {e}"
+            return (status_pretty, "")
 
 
 
@@ -334,6 +385,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OpenAI_Sora_API_ASYNC": "🦉OpenAI Sora API ASYNC（提交任务）",
+    "OpenAI_Sora_API_ASYNC": "🦉OpenAI Sora API Async（提交任务）",
     "OpenAI_Sora_Check_Result": "🦉OpenAI Sora Check Result（查询结果）",
 }
