@@ -29,10 +29,10 @@ except ImportError as e:
 
 # 导入OpenAI Sora 视频生成节点
 try:
-    from OpenAI_Node.openai_sora_api_node import NODE_CLASS_MAPPINGS as OPENAI_SORA_NODE_MAPPINGS
-    from OpenAI_Node.openai_sora_api_node import NODE_DISPLAY_NAME_MAPPINGS as OPENAI_SORA_DISPLAY_MAPPINGS
+    from OpenAI_Node.openai_sora_api_chat import NODE_CLASS_MAPPINGS as OPENAI_SORA_NODE_MAPPINGS
+    from OpenAI_Node.openai_sora_api_chat import NODE_DISPLAY_NAME_MAPPINGS as OPENAI_SORA_DISPLAY_MAPPINGS
 except ImportError as e:
-    print(f"Warning: Failed to import OpenAI_Node.openai_sora_api_node: {e}")
+    print(f"Warning: Failed to import OpenAI_Node.openai_sora_api_chat: {e}")
     OPENAI_SORA_NODE_MAPPINGS = {}
     OPENAI_SORA_DISPLAY_MAPPINGS = {}
 
@@ -421,6 +421,7 @@ WEB_DIRECTORY = "web"
 
 # 导出节点映射，供ComfyUI使用
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
+
 
 
 
