@@ -1,0 +1,14 @@
+{
+  "302": {
+    "base_url": "https://api.302.ai",
+    "async_suffix":"/sora/v2/video",
+    "model": "sora-2",
+    "api_key": "sk-2AdZSFib2jWwRzN8XQniBQrJkVjZNAygffTnHYFGrsFbbdv2"
+  },
+  "T8star": {
+    "base_url": "https://ai.t8star.cn",
+    "async_suffix": "/v2/videos/generations",
+    "model": "sora_video2",
+    "api_key": "sk-g39yZv2IhbeKZtTddS8DT7F3qCxf8r9RNwKJhFxpL4jBNm5N"
+  }
+}
