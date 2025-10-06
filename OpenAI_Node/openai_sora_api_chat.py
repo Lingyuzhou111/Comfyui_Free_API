@@ -4,6 +4,36 @@ import re
 import time
 from typing import Optional, Any
 from comfy_api_nodes.apinode_utils import VideoFromFile
+import os
+
+CONFIG_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "sora_api.json"
+)
+
+def _load_provider_conf(api_provider: str) -> dict:
+    try:
+        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        conf = data.get(api_provider or "")
+        if not isinstance(conf, dict):
+            raise ValueError(f"配置中未找到提供者: {api_provider}")
+        base_url = (conf.get("base_url") or "").strip().rstrip("/")
+        model = (conf.get("model") or "").strip()
+        api_key = (conf.get("api_key") or "").strip()
+        if not base_url:
+            raise ValueError(f"{api_provider} 的 base_url 未配置")
+        if not api_key:
+            raise ValueError(f"{api_provider} 的 api_key 未配置")
+        if not model:
+            model = "sora-2" if api_provider == "302" else "sora_video2"
+        return {"base_url": base_url, "model": model, "api_key": api_key}
+    except FileNotFoundError:
+        raise RuntimeError(f"缺少配置文件: {CONFIG_PATH}")
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"配置文件 JSON 解析失败: {e}")
+    except Exception as e:
+        raise RuntimeError(f"加载配置失败: {e}")
 
 class OpenAISoraAPI:
     """
@@ -30,16 +60,15 @@ class OpenAISoraAPI:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "base_url": ("STRING", {"default": "https://api.302.ai/v1", "multiline": False}),
-                "model": ("STRING", {"default": "sora-2", "multiline": False}),
-                "api_key": ("STRING", {"default": "", "multiline": False}),
+                "api_provider": (["302", "T8star"],),
                 "user_prompt": ("STRING", {"multiline": True, "default": "请描述要生成的视频内容"}),
+                "aspect_ratio": (["9:16", "16:9"],),
             },
             "optional": {
                 # 可选图像输入：提供则走“图生视频（image-to-video）”，不提供则为“文生视频（text-to-video）”
                 "image": ("IMAGE",),
                 # 新版302AI接口兼容参数：async与callback
-                "async_flag": ("BOOLEAN", {"default": False}),
+                "async_mode": ("BOOLEAN", {"default": False}),
                 "callback": ("STRING", {"default": "", "multiline": False}),
             }
         }
@@ -49,7 +78,7 @@ class OpenAISoraAPI:
     FUNCTION = "generate"
     CATEGORY = "🦉FreeAPI/OpenAI"
 
-    def generate(self, base_url, model, api_key, user_prompt, image=None, async_flag=False, callback=""):
+    def generate(self, api_provider, user_prompt, aspect_ratio, image=None, async_mode=False, callback=""):
         """
         调用 302.ai 的 sora-2 模型进行视频生成（流式）。
         请求：
@@ -70,21 +99,33 @@ class OpenAISoraAPI:
         超时：
           - timeout=600 秒
         """
-        if not api_key:
-            return (None, "", "错误：未配置API Key，请在节点参数中设置 api_key")
-        if not base_url:
-            return (None, "", "错误：未配置 base_url，请在节点参数中设置 base_url")
-        if not user_prompt.strip():
+        # 从配置文件读取平台参数
+        try:
+            conf = _load_provider_conf(api_provider or "302")
+        except Exception as e:
+            return (None, "", f"配置错误：{e}")
+        base_url = conf["base_url"]
+        model = conf["model"]
+        api_key = conf["api_key"]
+
+        if not user_prompt or not user_prompt.strip():
             return (None, "", "错误：user_prompt 为空，请提供视频描述")
+        if aspect_ratio not in ("9:16", "16:9"):
+            return (None, "", "错误：aspect_ratio 必须为 9:16 或 16:9")
 
         try:
             headers = self._build_headers(api_key)
             # 兼容新版302AI：支持在URL上附加 async 与 callback 参数
-            base_path = f"{base_url.rstrip('/')}/chat/completions"
+            # 统一处理 /v1/chat/completions 路径（若 base_url 未含 /v1 则自动补齐）
+            base_root = base_url.rstrip("/")
+            if base_root.endswith("/v1"):
+                base_path = f"{base_root}/chat/completions"
+            else:
+                base_path = f"{base_root}/v1/chat/completions"
             query_params = []
             # 仅当用户显式设置时附加 async=false/true
-            if isinstance(async_flag, bool):
-                query_params.append(f"async={'true' if async_flag else 'false'}")
+            if isinstance(async_mode, bool):
+                query_params.append(f"async={'true' if async_mode else 'false'}")
             # 如提供callback则附加
             if isinstance(callback, str) and callback.strip():
                 # 对callback进行URL编码，避免特殊字符影响请求
@@ -92,6 +133,16 @@ class OpenAISoraAPI:
                 cb = quote_plus(callback.strip())
                 query_params.append(f"callback={cb}")
             api_url = base_path if not query_params else f"{base_path}?{'&'.join(query_params)}"
+
+            # 在提示词尾部追加中文说明
+            try:
+                if aspect_ratio == "9:16":
+                    _ratio_suffix = "，竖屏portrait比例"
+                else:
+                    _ratio_suffix = "，横屏landscape比例"
+            except Exception:
+                _ratio_suffix = ""
+            user_prompt_final = (user_prompt or "").strip() + _ratio_suffix
 
             # 构建聊天内容：
             # - 若提供 image：按 OpenAI 多模态格式使用 content 数组，携带文本与图片
@@ -108,7 +159,7 @@ class OpenAISoraAPI:
                     image_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
                     base64_url = f"data:image/png;base64,{image_base64}"
                     content = [
-                        {"type": "text", "text": user_prompt},
+                        {"type": "text", "text": user_prompt_final},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -123,7 +174,7 @@ class OpenAISoraAPI:
                 messages = [{"role": "user", "content": content}]
             else:
                 print(f"[OpenAISoraAPI] 文生视频模式: 纯文本提示词")
-                messages = [{"role": "user", "content": user_prompt}]
+                messages = [{"role": "user", "content": user_prompt_final}]
 
             payload = {
                 "model": model,
@@ -134,7 +185,7 @@ class OpenAISoraAPI:
             print(f"[OpenAISoraAPI] 请求: {api_url} (chat/completions, stream=False)")
             print(f"[OpenAISoraAPI] 模型: {model}")
             # 打印裁剪后的提示词，便于用户确认任务内容
-            _preview = (user_prompt[:120] + "...") if len(user_prompt) > 120 else user_prompt
+            _preview = (user_prompt_final[:120] + "...") if len(user_prompt_final) > 120 else user_prompt_final
             print(f"[OpenAISoraAPI] 提交Sora任务 | 提示词: {_preview}")
             # 打印精简后的载荷（避免输出完整base64）
             try:
@@ -588,5 +639,5 @@ NODE_CLASS_MAPPINGS = {
     "OpenAI_Sora_API": OpenAISoraAPI
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "OpenAI_Sora_API": "🦉OpenAI Sora API节点"
+    "OpenAI_Sora_API": "🦉OpenAI Sora API（Chat模式）"
 }
