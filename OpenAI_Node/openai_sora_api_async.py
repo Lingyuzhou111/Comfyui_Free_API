@@ -420,6 +420,8 @@ class OpenAISoraAPIAsyncCheck:
                 status_cn = "生成失败"
             elif status_raw in ("created", "processing", "queued", "running", "in_progress"):
                 status_cn = "进行中"
+            elif status_raw in ("not_start", "not_started"):
+                status_cn = "等待开始"
             elif status_raw in ("success", "SUCCESS"):
                 status_cn = "已完成"
             else:
