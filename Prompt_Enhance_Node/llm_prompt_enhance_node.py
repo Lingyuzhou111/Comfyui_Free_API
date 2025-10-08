@@ -196,6 +196,8 @@ class LLM_Prompt_Enhance_Node:
         2) api_response: str（API 响应增强结果）
     """
 
+    _last_result: Optional[Tuple[str, str]] = None
+
     @classmethod
     def INPUT_TYPES(cls):
         # 加载配置与模版
@@ -220,8 +222,10 @@ class LLM_Prompt_Enhance_Node:
                 "max_tokens": ("INT", {"default": 2048, "min": 1, "max": 8192, "step": 1}),
                 "temperature": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.05}),
                 "top_p": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 1.0, "step": 0.05}),
-                "seed": ("INT", {"default": -1, "min": -1, "max": 2**31 - 1, "step": 1, "tooltip": "仅用于触发重新执行；数值变化会绕过ComfyUI全局缓存，不参与API语义"}),
             },
+            "optional": {
+                "is_locked": ("BOOLEAN", {"default": False})
+            }
         }
 
     RETURN_TYPES = ("STRING", "STRING")
@@ -233,6 +237,25 @@ class LLM_Prompt_Enhance_Node:
         self._cached_map_info: Optional[Dict[str, Dict[str, str]]] = None
         self._cached_templates: Optional[Dict[str, str]] = None
         self._last_reload_ts: float = 0.0
+
+    @classmethod
+    def IS_CHANGED(cls, llm_model, preset_template, sys_prompt, user_prompt,
+                   max_tokens=2048, temperature=0.8, top_p=0.6, is_locked=False):
+        """
+        缓存判定：
+        - is_locked=true 且已有缓存：返回稳定哈希，使 ComfyUI 命中缓存并复用上一轮输出；
+        - 其他情况：返回带时间噪声的哈希，触发重新执行。
+        """
+        try:
+            import hashlib, time as _t
+            stable_key_src = f"{str(llm_model)}|{str(preset_template)}"
+            if bool(is_locked) and getattr(cls, "_last_result", None):
+                return hashlib.sha256(stable_key_src.encode("utf-8")).hexdigest()
+            nonce_src = f"{stable_key_src}|{_t.time_ns()}"
+            return hashlib.sha256(nonce_src.encode("utf-8")).hexdigest()
+        except Exception:
+            import time as _t2
+            return str(_t2.time_ns())
 
     def _maybe_reload(self):
         now = time.time()
@@ -258,7 +281,7 @@ class LLM_Prompt_Enhance_Node:
         max_tokens: int = 2048,
         temperature: float = 0.8,
         top_p: float = 0.6,
-        seed: int = 0,
+        is_locked: bool = False
     ):
         """
         主执行逻辑:
@@ -268,9 +291,14 @@ class LLM_Prompt_Enhance_Node:
         4) 返回 input_context 与 api_response
 
         说明:
-        - 新增参数 seed 仅作为触发重新执行的扰动因子，不参与 API 语义；当 seed 变化时，ComfyUI 认为节点输入已变化，会重新执行本函数。
+        - is_locked=true 时：若存在上一轮结果缓存，将直接复用该缓存并跳过新请求；否则按当前输入重新请求并写回缓存。
         """
         self._maybe_reload()
+
+        if bool(is_locked):
+            cached = getattr(self.__class__, "_last_result", None)
+            if cached:
+                return cached
 
         user_prompt = (user_prompt or "").strip()
 
@@ -311,6 +339,7 @@ class LLM_Prompt_Enhance_Node:
         )
 
         api_response = result if ok else f"请求失败: {result}"
+        self.__class__._last_result = (input_context, api_response)
         return (input_context, api_response)
 
 
