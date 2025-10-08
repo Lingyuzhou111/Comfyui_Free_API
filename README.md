@@ -26,14 +26,20 @@
 
 > **251001** ：新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
 
+> **251008** ：将OpenAI Sora API节点拆分为Chat(同步)模式和Async(异步)模式，支持双平台一键切换
+
 ## 📖 示例工作流
+
+####  将OpenAI Sora API节点拆分为Chat(同步)模式和Async(异步)模式，支持双平台一键切换
+<img width="1201" height="1099" alt="wechat_2025-10-08_231405_662" src="https://github.com/user-attachments/assets/c2f1c634-91b0-438e-9422-b130dda461c4" />
+<img width="1473" height="1095" alt="wechat_2025-10-08_222903_939" src="https://github.com/user-attachments/assets/90a55031-b849-4621-a15e-5273208ec39f" />
+-302.ai平台 https://share.302.ai/U6TUev
+
+-T8star平台 https://ai.t8star.cn/register?aff=lUL848049
 
 ####  新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
 <img width="1730" height="994" alt="00e37c9fdf869fda83b88e90674b30e7" src="https://github.com/user-attachments/assets/70fbacc5-6388-4d10-a8eb-e32f1576873f" />
 -支持文生和图生，在提示词末尾加入"使用横屏/竖屏"或"比例16:9/9:16"可指定生成结果的比例
-
--302.ai平台 https://share.302.ai/U6TUev
--T8star平台 https://ai.t8star.cn/register?aff=lUL848049
 
 ####  新增Free Translate节点支持免费的多语种翻译
 <img width="875" height="916" alt="7d05c199efb0a0daaebbcc840b181848" src="https://github.com/user-attachments/assets/8a758798-5b7e-409d-9abf-c35651d82028" />
@@ -213,6 +219,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
