@@ -32,7 +32,8 @@
 <img width="1730" height="994" alt="00e37c9fdf869fda83b88e90674b30e7" src="https://github.com/user-attachments/assets/70fbacc5-6388-4d10-a8eb-e32f1576873f" />
 -支持文生和图生，在提示词末尾加入"使用横屏/竖屏"或"比例16:9/9:16"可指定生成结果的比例
 
--用我的邀请码注册可获得1PTC(≈1$)的赠额 https://share.302.ai/U6TUev
+-302.ai平台 https://share.302.ai/U6TUev
+-T8star平台 https://ai.t8star.cn/register?aff=lUL848049
 
 ####  新增Free Translate节点支持免费的多语种翻译
 <img width="875" height="916" alt="7d05c199efb0a0daaebbcc840b181848" src="https://github.com/user-attachments/assets/8a758798-5b7e-409d-9abf-c35651d82028" />
@@ -212,6 +213,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
