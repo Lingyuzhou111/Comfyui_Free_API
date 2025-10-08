@@ -386,13 +386,13 @@ class OpenAISoraAPIAsyncCheck:
 
             if resp.status_code != 200:
                 _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
-                status_pretty = f"♻️ 任务状态：查询失败\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：HTTP {resp.status_code}"
+                status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：HTTP {resp.status_code}"
                 return (status_pretty, "")
 
             data = resp.json()
             if not isinstance(data, dict):
                 _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
-                status_pretty = f"♻️ 任务状态：查询失败\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：API响应格式异常：非JSON对象"
+                status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：API响应格式异常：非JSON对象"
                 return (status_pretty, "")
 
             # 响应解析分支
@@ -401,7 +401,7 @@ class OpenAISoraAPIAsyncCheck:
                 if code != 200:
                     _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
                     msg = data.get("message", "接口返回非200")
-                    status_pretty = f"♻️ 任务状态：查询失败\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：{msg}"
+                    status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：{msg}"
                     return (status_pretty, "")
                 d = data.get("data") or {}
                 status_raw = (d.get("status") or d.get("Status") or "").strip().lower()
@@ -454,6 +454,7 @@ class OpenAISoraAPIAsyncCheck:
             vlink_disp = video_url if video_url else "等待返回"
             status_pretty = (
                 f"♻️ 任务状态：{status_cn}\n"
+                f"🎨 任务类型：{task_type}\n"
                 f"⌚️ 创建时间：{created_at}\n"
                 f"🔖 任务ID：{task_id_short}\n"
                 f"🔗 视频链接: {vlink_disp}"
@@ -466,15 +467,15 @@ class OpenAISoraAPIAsyncCheck:
             return (status_pretty, video_url)
         except requests.exceptions.Timeout:
             _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
-            status_pretty = f"♻️ 任务状态：查询失败\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：请求超时，请稍后重试"
+            status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：请求超时，请稍后重试"
             return (status_pretty, "")
         except requests.exceptions.RequestException as e:
             _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
-            status_pretty = f"♻️ 任务状态：查询失败\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：网络错误: {e}"
+            status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：网络错误: {e}"
             return (status_pretty, "")
         except Exception as e:
             _tid_short = (task_id.strip().split(":")[-1]) if isinstance(task_id, str) else "-"
-            status_pretty = f"♻️ 任务状态：查询失败\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：查询失败: {e}"
+            status_pretty = f"♻️ 任务状态：查询失败\n🎨 任务类型：未知\n⌚️ 创建时间：-\n🔖 任务ID：{_tid_short}\n🔗 视频链接: -\n详情：查询失败: {e}"
             return (status_pretty, "")
 
 # 节点注册
