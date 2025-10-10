@@ -36,7 +36,6 @@
 工作流下载地址 https://github.com/Lingyuzhou111/Comfyui_Free_API/blob/main/Examples/LYZ-Sora-API%E5%B7%A5%E4%BD%9C%E6%B5%81.json
 
 -302.ai平台 https://share.302.ai/U6TUev
-
 -T8star平台 https://ai.t8star.cn/register?aff=lUL848049
 
 ####  新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
@@ -221,6 +220,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
