@@ -288,6 +288,15 @@ except ImportError as e:
     FREE_TRANSLATE_NODE_MAPPINGS = {}
     FREE_TRANSLATE_DISPLAY_MAPPINGS = {}
 
+# 导入Gaga 图生视频节点
+try:
+    from Gaga_Node.gaga_avart_i2v import NODE_CLASS_MAPPINGS as GAGA_I2V_NODE_MAPPINGS
+    from Gaga_Node.gaga_avart_i2v import NODE_DISPLAY_NAME_MAPPINGS as GAGA_I2V_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Gaga_Node.gaga_avart_i2v: {e}")
+    GAGA_I2V_NODE_MAPPINGS = {}
+    GAGA_I2V_DISPLAY_MAPPINGS = {}
+
 # 合并所有节点的映射
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -416,15 +425,15 @@ NODE_DISPLAY_NAME_MAPPINGS.update(LOAD_PRESET_PROMPT_DISPLAY_MAPPINGS)
 NODE_CLASS_MAPPINGS.update(FREE_TRANSLATE_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(FREE_TRANSLATE_DISPLAY_MAPPINGS)
 
+# 添加Gaga 图生视频节点
+NODE_CLASS_MAPPINGS.update(GAGA_I2V_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(GAGA_I2V_DISPLAY_MAPPINGS)
+
 # 让 ComfyUI 自动加载本插件的前端资源 custom_nodes/Comfyui_Free_API/web/*
 WEB_DIRECTORY = "web"
 
 # 导出节点映射，供ComfyUI使用
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
-
-
-
-
 
 
 
