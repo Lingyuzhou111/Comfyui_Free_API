@@ -1,0 +1,20 @@
+{
+  "base_url": "https://gaga.art",
+  "cookie": "",
+  "headers": {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+  },
+  "timeouts": {
+    "connect": 10,
+    "read": 20,
+    "poll_interval": 3,
+    "poll_timeout_secs": 300
+  },
+  "model": "test-performer",
+  "defaults": {
+    "resolution": "540p",
+    "enhancementType": "i2v_performer_performer-v3-6_gemini",
+    "nSampleSteps": 32,
+    "enablePromptEnhancement": false
+  }
+}
