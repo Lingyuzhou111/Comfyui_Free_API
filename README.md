@@ -28,12 +28,18 @@
 
 > **251008** ：将OpenAI Sora API节点拆分为Chat(同步)模式和Async(异步)模式，支持302和T8star双平台一键切换
 
+> **251014** ：新增Grok imagine i2v图生视频节点(需要特殊网络环境)
+
 ## 📖 示例工作流
+
+####  新增Grok imagine i2v图生视频节点
+<img width="1025" height="1099" alt="55950dfa87bcaecef8e08e1cf4da7c02" src="https://github.com/user-attachments/assets/d2c3937a-2bd2-42e0-8dee-84ab05d7b51f" />
+示例工作流 https://github.com/Lingyuzhou111/Comfyui_Free_API/blob/main/Examples/LYZ_GROK_I2V%E5%B7%A5%E4%BD%9C%E6%B5%81.json
 
 ####  将OpenAI Sora API节点拆分为Chat(同步)模式和Async(异步)模式，支持双平台一键切换
 <img width="1201" height="1099" alt="wechat_2025-10-08_231405_662" src="https://github.com/user-attachments/assets/c2f1c634-91b0-438e-9422-b130dda461c4" />
 <img width="1473" height="1095" alt="wechat_2025-10-08_222903_939" src="https://github.com/user-attachments/assets/90a55031-b849-4621-a15e-5273208ec39f" />
-工作流下载地址 https://github.com/Lingyuzhou111/Comfyui_Free_API/blob/main/Examples/LYZ-Sora-API%E5%B7%A5%E4%BD%9C%E6%B5%81.json
+示例工作流 https://github.com/Lingyuzhou111/Comfyui_Free_API/blob/main/Examples/LYZ-Sora-API%E5%B7%A5%E4%BD%9C%E6%B5%81.json
 
 -302.ai平台 https://share.302.ai/U6TUev
 -T8star平台 https://ai.t8star.cn/register?aff=lUL848049
@@ -220,6 +226,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
