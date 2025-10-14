@@ -1,0 +1,291 @@
+{
+  "id": "837a1d5b-e38a-4a3c-8076-8bede6facb8c",
+  "revision": 0,
+  "last_node_id": 17,
+  "last_link_id": 11,
+  "nodes": [
+    {
+      "id": 11,
+      "type": "MaletteFluxKontextImageScale",
+      "pos": [
+        14134.482421875,
+        2554.939453125
+      ],
+      "size": [
+        406.1602783203125,
+        31.76926040649414
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "jinchanz/ComfyUI-ADIC",
+        "ver": "5e3fcb63afa63f67161bd34ebb2334e5c96190bd",
+        "Node name for S&R": "MaletteFluxKontextImageScale",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.2.2"
+        }
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 14,
+      "type": "LoadImage",
+      "pos": [
+        14131.1171875,
+        1839.129150390625
+      ],
+      "size": [
+        409.3136901855469,
+        655.92919921875
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "label": "图像",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            7
+          ]
+        },
+        {
+          "label": "遮罩",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.30",
+        "Node name for S&R": "LoadImage",
+        "ue_properties": {
+          "version": "7.0.1",
+          "widget_ue_connectable": {}
+        }
+      },
+      "widgets_values": [
+        "doubao__00004_.png",
+        "image"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "SaveVideo",
+      "pos": [
+        14573.3115234375,
+        1840.094970703125
+      ],
+      "size": [
+        854.448974609375,
+        1295.571044921875
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 11
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.62",
+        "Node name for S&R": "SaveVideo",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.2.2"
+        }
+      },
+      "widgets_values": [
+        "video/ComfyUI",
+        "auto",
+        "auto"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "Grok_Imagine_I2V",
+      "pos": [
+        14137.322265625,
+        2659.594970703125
+      ],
+      "size": [
+        405.8211364746094,
+        158.87770080566406
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            11
+          ]
+        },
+        {
+          "name": "generation_info",
+          "type": "STRING",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Grok_Imagine_I2V",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "input_ue_unconnectable": {},
+          "version": "7.2.2"
+        }
+      },
+      "widgets_values": [
+        "account_1",
+        "custom",
+        "spicy"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "ShowText|pysssss",
+      "pos": [
+        14139.556640625,
+        2889.953125
+      ],
+      "size": [
+        401.6971130371094,
+        242.78994750976562
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "label": "字符串",
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-custom-scripts",
+        "ver": "aac13aa7ce35b07d43633c3bbe654a38c00d74f5",
+        "Node name for S&R": "ShowText|pysssss",
+        "ue_properties": {
+          "version": "7.0.1",
+          "widget_ue_connectable": {}
+        }
+      },
+      "widgets_values": []
+    }
+  ],
+  "links": [
+    [
+      7,
+      14,
+      0,
+      11,
+      0,
+      "IMAGE"
+    ],
+    [
+      9,
+      11,
+      0,
+      16,
+      0,
+      "IMAGE"
+    ],
+    [
+      10,
+      16,
+      1,
+      13,
+      0,
+      "STRING"
+    ],
+    [
+      11,
+      16,
+      0,
+      17,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "——————GROK-IMAGINE-I2V———————",
+      "bounding": [
+        14096.4501953125,
+        1695.0599365234375,
+        1365.14794921875,
+        1468.0655517578125
+      ],
+      "color": "#3f789e",
+      "font_size": 60,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ue_links": [],
+    "ds": {
+      "scale": 0.31384283767210813,
+      "offset": [
+        -12203.226187824732,
+        -1100.782255175332
+      ]
+    },
+    "frontendVersion": "1.26.13",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
