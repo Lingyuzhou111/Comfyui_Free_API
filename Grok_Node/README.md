@@ -21,7 +21,7 @@ Grok 图生视频节点是一个 ComfyUI 自定义节点，可以将图像转换
       "headers": {
         "user-agent": "浏览器User-Agent",
         "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-        "x-statsig-id": "固定值",
+        "x-statsig-id": "ZTpUeXBlRXJyb3I6IENhbm5vdCByZWFkIHByb3BlcnRpZXMgb2YgdW5kZWZpbmVkIChyZWFkaW5nICdjaGlsZE5vZGVzJyk=", // 固定值不要动
         "sentry-trace": "跟踪ID",
         "baggage": "跟踪信息"
       }
@@ -101,4 +101,5 @@ Grok 图生视频节点是一个 ComfyUI 自定义节点，可以将图像转换
 如果视频生成失败，请检查：
 1. Cookie 是否有效
 2. 网络连接是否正常
+
 3. 图像是否符合要求
