@@ -1,0 +1,33 @@
+{
+  "base_url": "https://grok.com",
+  "assets_base_url": "https://assets.grok.com",
+  "filtered_tags": "xaiartifact,xai:tool_usage_card,grok:render",
+  "accounts": {
+    "account_1": {
+      "cookie": "你的完整Cookie字符串",
+      "headers": {
+        "user-agent": "浏览器User-Agent",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "x-statsig-id": "固定值",
+        "sentry-trace": "跟踪ID",
+        "baggage": "跟踪信息"
+      }
+    },
+    "account_2": {
+      "cookie": "你的完整Cookie字符串",
+      "headers": {
+        "user-agent": "浏览器User-Agent",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "x-statsig-id": "固定值",
+        "sentry-trace": "跟踪ID",
+        "baggage": "跟踪信息"
+      }
+    }
+  },
+  "timeouts": {
+    "connect": 10,
+    "read": 20,
+    "poll_interval": 2,
+    "poll_timeout_secs": 180
+  }
+}
