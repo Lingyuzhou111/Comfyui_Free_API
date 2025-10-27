@@ -243,6 +243,24 @@ except ImportError as e:
     MODELSCOPE_IMAGE_NODE_MAPPINGS = {}
     MODELSCOPE_IMAGE_DISPLAY_MAPPINGS = {}
 
+# 导入Haiyi 文生图节点
+try:
+    from Haiyi_Node.haiyi_image import NODE_CLASS_MAPPINGS as HAIYI_IMAGE_NODE_MAPPINGS
+    from Haiyi_Node.haiyi_image import NODE_DISPLAY_NAME_MAPPINGS as HAIYI_IMAGE_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Haiyi_Node.haiyi_image: {e}")
+    HAIYI_IMAGE_NODE_MAPPINGS = {}
+    HAIYI_IMAGE_DISPLAY_MAPPINGS = {}
+
+# 导入Haiyi 视频生成节点
+try:
+    from Haiyi_Node.haiyi_video import NODE_CLASS_MAPPINGS as HAIYI_VIDEO_NODE_MAPPINGS
+    from Haiyi_Node.haiyi_video import NODE_DISPLAY_NAME_MAPPINGS as HAIYI_VIDEO_DISPLAY_MAPPINGS
+except ImportError as e:
+    print(f"Warning: Failed to import Haiyi_Node.haiyi_video: {e}")
+    HAIYI_VIDEO_NODE_MAPPINGS = {}
+    HAIYI_VIDEO_DISPLAY_MAPPINGS = {}  
+
 # 导入HunyuanImage 文生图节点
 try:
     from Hunyuan_Node.hunyuan_image import NODE_CLASS_MAPPINGS as HUNYUAN_IMAGE_NODE_MAPPINGS
@@ -414,6 +432,14 @@ NODE_DISPLAY_NAME_MAPPINGS.update(DOWNLOAD_VIDEO_DISPLAY_MAPPINGS)
 NODE_CLASS_MAPPINGS.update(MODELSCOPE_IMAGE_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(MODELSCOPE_IMAGE_DISPLAY_MAPPINGS)
 
+# 添加Haiyi 文生图节点
+NODE_CLASS_MAPPINGS.update(HAIYI_IMAGE_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(HAIYI_IMAGE_DISPLAY_MAPPINGS)
+
+# 添加Haiyi 视频生成节点
+NODE_CLASS_MAPPINGS.update(HAIYI_VIDEO_NODE_MAPPINGS)
+NODE_DISPLAY_NAME_MAPPINGS.update(HAIYI_VIDEO_DISPLAY_MAPPINGS)
+
 # 导入HunyuanImage 文生图节点
 NODE_CLASS_MAPPINGS.update(HUNYUAN_IMAGE_NODE_MAPPINGS)
 NODE_DISPLAY_NAME_MAPPINGS.update(HUNYUAN_IMAGE_DISPLAY_MAPPINGS)
@@ -447,3 +473,4 @@ WEB_DIRECTORY = "web"
 
 # 导出节点映射，供ComfyUI使用
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
+
