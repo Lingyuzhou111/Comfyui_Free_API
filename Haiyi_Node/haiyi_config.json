@@ -1,0 +1,99 @@
+{
+  "cookie": "",
+  "timeout": 30,
+  "max_wait_time": 360,
+  "check_interval": 6,
+  "headers": {
+    "x-app-id": "web_global_seaart",
+    "x-platform": "web",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+    "origin": "https://www.haiyi.art",
+    "referer": "https://www.haiyi.art/"
+  },
+  "image_models": {
+    "Seedream 4.0": {
+      "apply_id": "d30p1vte8785covrd1gg",
+      "ver_no": "d31am7de878a1j16g2i0",
+      "ss": 52
+    },
+    "NanoBanana": {
+      "apply_id": "d2jcupn6j8cs739j2mfg",
+      "ver_no": "d2vpm9le878d6oej97ag",
+      "ss": 52
+    },
+    "海艺影像 2.0": {
+      "model_no": "26058e019e3a0c026e1ad2bfa69e2333",
+      "model_ver_no": "f8bd92160ac1555b92de3488a0c4082f30fee233",
+      "ss": 52,
+      "default_steps": 20,
+      "default_cfg_scale": 2.5,
+      "default_n_iter": 4
+    }
+  },
+  "video_models": {
+    "海艺影像 专业版": {
+      "model_no": "3af4aa8d07e30b4a895b45771212f2aa",
+      "model_ver_no": "262f97d7-41c8-41fa-9226-69405f91b4d3",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 250,      
+      "default_quality": "360p"
+    },
+    "可灵2.5": {
+      "model_no": "a70a84e9d34b46c7861dseaarting25upv",
+      "model_ver_no": "1cd2354e354e4308a1b8seaarting25upv",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 400,      
+      "default_quality": "360p"
+    },
+    "WAN2.5 视频生成": {
+      "model_no": "a70a84e9d2db46c7861dseaartwan25v",
+      "model_ver_no": "1cd2354ece4e4308a1b8seaartwan25v",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 260,      
+      "default_quality": "360p"
+    },
+    "通义wan2.2-plus": {
+      "model_no": "3af4aa8d07e30b4a895b457171232f2b1",
+      "model_ver_no": "a1b2c3d4-e5f6-4789-9abc-def112345678",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 50,      
+      "default_quality": "360p"
+    },
+    "通义wan2.2-flash": {
+      "model_no": "3af4aa8d17e3054a29b45s7a2232f2bt",
+      "model_ver_no": "212f93d7-a112-43fa-9ao6-69405t90b1d2",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 35,      
+      "default_quality": "360p"
+    },
+    "pixverseV5": {
+      "model_no": "3af4aa8d07e30b4a895b45771222f2bd",
+      "model_ver_no": "c6bb5a61-ed95-44a2-b511-eb9d9de9084f",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 200,      
+      "default_quality": "360p"
+    },
+    "VIDU Q2": {
+      "model_no": "3af4aa8d07e30b4a200345771232stagev",
+      "model_ver_no": "1cd2354e354e4308a1b8cz0eewzstagev",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 0,      
+      "default_quality": "360p"
+    },
+    "V2.0": {
+      "model_no": "3af4aa8d07e30b4a200345771232stagev",
+      "model_ver_no": "1cd2354e354e4308a1b8cz0eewzstagev",
+      "ss": 52,
+      "default_duration": 5,
+      "min_cost": 0,
+      "default_quality": "360p"
+    }
+  }
+}
