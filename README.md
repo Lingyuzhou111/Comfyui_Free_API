@@ -30,7 +30,14 @@
 
 > **251014** ：新增Grok imagine i2v图生视频节点(需要特殊网络环境)
 
+> **251027** ：新增Haiyi AI生图和AI生视频节点
+
 ## 📖 示例工作流
+####  新增Haiyi AI生图和AI生视频节点
+<img width="821" height="1048" alt="wechat_2025-10-26_231947_777" src="https://github.com/user-attachments/assets/61acf51c-7482-40ab-a92e-4c2ec5c22427" />
+<img width="1050" height="1085" alt="wechat_2025-10-26_222817_408" src="https://github.com/user-attachments/assets/ba9421db-d7db-4d31-92c0-540ee7bf6de6" />
+<img width="1494" height="1084" alt="wechat_2025-10-26_210116_071" src="https://github.com/user-attachments/assets/17a3eb7e-01ab-438a-a79d-7f4aa7cfb420" />
+-海艺平台注册地址: https://www.haiyi.art 
 
 ####  新增Grok imagine i2v图生视频节点
 <img width="1025" height="1099" alt="55950dfa87bcaecef8e08e1cf4da7c02" src="https://github.com/user-attachments/assets/d2c3937a-2bd2-42e0-8dee-84ab05d7b51f" />
@@ -226,6 +233,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
