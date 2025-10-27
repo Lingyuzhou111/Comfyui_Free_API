@@ -35,7 +35,7 @@
 ## 📖 示例工作流
 ####  新增Haiyi AI生图和AI生视频节点
 <img width="450" height="580" alt="wechat_2025-10-26_231947_777" src="https://github.com/user-attachments/assets/61acf51c-7482-40ab-a92e-4c2ec5c22427" />
-<img width="550" height="580" alt="wechat_2025-10-26_222817_408" src="https://github.com/user-attachments/assets/ba9421db-d7db-4d31-92c0-540ee7bf6de6" />
+<img width="555" height="585" alt="wechat_2025-10-26_222817_408" src="https://github.com/user-attachments/assets/ba9421db-d7db-4d31-92c0-540ee7bf6de6" />
 <img width="1020" height="725" alt="wechat_2025-10-26_210116_071" src="https://github.com/user-attachments/assets/17a3eb7e-01ab-438a-a79d-7f4aa7cfb420" />
 -海艺平台注册地址: https://www.haiyi.art 
 
@@ -233,6 +233,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
