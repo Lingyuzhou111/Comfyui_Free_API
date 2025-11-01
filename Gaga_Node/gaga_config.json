@@ -10,11 +10,12 @@
     "poll_interval": 3,
     "poll_timeout_secs": 300
   },
-  "model": "test-performer",
+  "model": "test-performer-1_5-sr",
   "defaults": {
     "resolution": "540p",
-    "enhancementType": "i2v_performer_performer-v3-6_gemini",
+    "enhancementType": "i2v_performer_performer-v3-7_gemini",
     "nSampleSteps": 32,
     "enablePromptEnhancement": false
   }
+
 }
