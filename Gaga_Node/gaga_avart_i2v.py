@@ -5,7 +5,7 @@ Gaga.art 图生视频节点（Image to Video）
     - image (必填): ComfyUI IMAGE 张量
     - prompt(必填): 文本提示词
 - 可选:
-    - aspectRatio: 下拉，仅 16:9（默认 16:9）
+    - aspectRatio: 下拉，支持16:9和9:16
     - duration: 下拉，5 或 10（默认 10）
     - cropArea_x: 裁剪区域起点X（默认 0）
     - cropArea_y: 裁剪区域起点Y（默认 0）
@@ -25,13 +25,12 @@ Gaga.art 图生视频节点（Image to Video）
             "poll_interval": 3,
             "poll_timeout_secs": 300
           },
-          "model": "test-performer",
+          "model": "test-performer-1_5-sr",
           "defaults": {
             "resolution": "540p",
-            "enhancementType": "i2v_performer_performer-v3-6_gemini",
+            "enhancementType": "i2v_performer_performer-v3-7_gemini",
             "nSampleSteps": 32,
-            "enablePromptEnhancement": true,
-            "enableWatermark": true
+            "enablePromptEnhancement": true
           }
         }
 - 注意:
@@ -149,9 +148,11 @@ class GagaAvartI2VNode:
                 "prompt": ("STRING", {"multiline": True, "default": "", "tooltip": "视频的文本提示词"}),
             },
             "optional": {
-                "aspectRatio": (["16:9", "9:16"], {"default": "16:9", "tooltip": "当前仅支持16:9"}),
+                "aspectRatio": (["16:9", "9:16"], {"default": "16:9", "tooltip": "支持 16:9 与 9:16"}),
                 "duration": ([5, 10], {"default": 10, "tooltip": "视频时长(秒)"}),
-                "enableWatermark": ("BOOLEAN", {"default": False, "tooltip": "是否添加水印"}),
+                "resolution": (["540p", "720p"], {"default": "540p", "tooltip": "生成分辨率：540p(标准) 或 720p(HD)"}),
+                "watermarkType": (["gaga", "gaga_with_ai"], {"default": "gaga", "tooltip": "水印样式：gaga 或 gaga_with_ai"}),
+                "enhancement": ("BOOLEAN", {"default": False, "tooltip": "提示词自动优化：true开启，false关闭"})
             }
         }
 
@@ -213,24 +214,32 @@ class GagaAvartI2VNode:
             raise RuntimeError(f"上传图片失败: HTTP {resp.status_code} - {text}...")
         return resp.json()
 
-    def _compute_crop(self, img_w: int, img_h: int, x: int, y: int) -> Dict[str, int]:
+    def _compute_crop(self, img_w: int, img_h: int, x: int, y: int, aspect_ratio: str) -> Dict[str, int]:
         """
-        仅支持 16:9。基于图片尺寸优先用宽度计算高度，如果超出图像高度，则改为以高度反推宽度。
-        并将 x,y 和 width,height 进行边界裁剪，保证落在图像内。
+        支持 16:9 与 9:16。
+        - 基于目标比例优先按较长边计算另一边，若越界则反向计算。
+        - 对 x,y 与 width,height 做边界裁剪，确保在图像范围内。
         """
-        # 先按宽度计算 height
-        target_h = round(img_w * 9 / 16)
-        target_w = img_w
-        if target_h > img_h:
-            # 改为以高度推宽度
-            target_h = img_h
-            target_w = round(img_h * 16 / 9)
+        if aspect_ratio == "9:16":
+            # 目标为竖屏：宽高比 9:16
+            target_h = round(img_w * 16 / 9)
+            target_w = img_w
+            if target_h > img_h:
+                target_h = img_h
+                target_w = round(img_h * 9 / 16)
+        else:
+            # 默认 16:9 横屏
+            target_h = round(img_w * 9 / 16)
+            target_w = img_w
+            if target_h > img_h:
+                target_h = img_h
+                target_w = round(img_h * 16 / 9)
         # 边界裁剪 x,y
         x = max(0, min(x, max(0, img_w - target_w)))
         y = max(0, min(y, max(0, img_h - target_h)))
         return {"x": int(x), "y": int(y), "width": int(target_w), "height": int(target_h)}
 
-    def _start_generation(self, asset_id: int, prompt: str, aspect_ratio: str, duration: int, crop_area: Dict[str, int], enable_watermark: bool) -> int:
+    def _start_generation(self, asset_id: int, prompt: str, aspect_ratio: str, duration: int, crop_area: Dict[str, int], watermark_type: str, enable_enhancement: bool, resolution: str) -> int:
         """
         POST {base_url}/api/v1/generations/performer
         返回任务 id
@@ -239,8 +248,20 @@ class GagaAvartI2VNode:
         headers = self._headers()
         headers["content-type"] = "application/json"
         defaults = self.config.get("defaults", {})
+        # 解析增强与分辨率，兼容配置默认
+        enhance_on = bool(enable_enhancement)
+        res_value = str(resolution or defaults.get("resolution", "540p"))
+        enh_type = defaults.get("enhancementType", "i2v_performer_performer-v3-7_gemini-pro")
+        n_steps = int(defaults.get("nSampleSteps", 32))
+        # HD 模式时附加 extra: {"imageSuperResolution": true}
+        extra_str = "{\"imageSuperResolution\":true}" if res_value == "720p" else ""
+        # 规范化水印类型（仅允许 gaga / gaga_with_ai）
+        watermark_type = (watermark_type or "gaga").strip()
+        if watermark_type not in ("gaga", "gaga_with_ai"):
+            watermark_type = "gaga"
+
         payload = {
-            "model": self.config.get("model", "test-performer"),
+            "model": self.config.get("model", "test-performer-1_5-sr"),
             "aspectRatio": aspect_ratio,
             "taskType": "I2FV",
             "taskSource": "HUMAN",
@@ -250,7 +271,7 @@ class GagaAvartI2VNode:
                 "conditions": [{"type": "text", "content": prompt or ""}]
             }],
             "extraArgs": {
-                "enablePromptEnhancement": bool(defaults.get("enablePromptEnhancement", True)),
+                "enablePromptEnhancement": enhance_on,
                 "cropArea": {
                     "x": crop_area["x"],
                     "y": crop_area["y"],
@@ -258,14 +279,13 @@ class GagaAvartI2VNode:
                     "height": crop_area["height"]
                 },
                 "extraInferArgs": {
-                    "enhancementType": defaults.get("enhancementType", "i2v_performer_performer-v3-6_gemini"),
-                    "nSampleSteps": int(defaults.get("nSampleSteps", 32)),
-                    "resolution": defaults.get("resolution", "540p"),
-                    "enableWatermark": bool(enable_watermark),
-                    # 与示例保持字段存在性，采用安全默认
+                    "enhancementType": enh_type,
+                    "nSampleSteps": n_steps,
+                    "resolution": res_value,
+                    "watermarkType": watermark_type,
                     "specialTokens": [],
                     "vaeModel": "",
-                    "extra": "",
+                    "extra": extra_str,
                     "modelVersion": "",
                     "dryRun": False,
                     "enableInputVideoToTs": False
@@ -284,9 +304,26 @@ class GagaAvartI2VNode:
             pass
         resp = requests.post(url, headers=headers, json=payload, timeout=(t["connect"], t["read"]))
         if resp.status_code != 200:
-            text = (resp.text or "")[:200].replace("\n", " ")
+            text = (resp.text or "")[:500].replace("\n", " ")
+            try:
+                logger.info(f"[GagaI2V] 提交任务非200响应: HTTP {resp.status_code} | body: {text}")
+            except Exception:
+                pass
             raise RuntimeError(f"提交任务失败: HTTP {resp.status_code} - {text}...")
-        data = resp.json()
+        # 记录成功时的响应JSON（精简打印）
+        try:
+            data = resp.json()
+        except Exception:
+            body_preview = (resp.text or "")[:500].replace("\n", " ")
+            try:
+                logger.info(f"[GagaI2V] 提交任务响应JSON解析失败，原始响应: {body_preview}")
+            except Exception:
+                pass
+            raise
+        try:
+            logger.info(f"[GagaI2V] 提交任务响应(精简): {self._safe_json_dumps(data, indent=0)}")
+        except Exception:
+            pass
         if "id" not in data:
             raise RuntimeError(f"提交任务异常：响应中缺少id字段: {data}")
         return int(data["id"])
@@ -376,7 +413,8 @@ class GagaAvartI2VNode:
 
     def imagine_i2v(self, image: torch.Tensor, prompt: str,
                     aspectRatio: str = "16:9", duration: int = 10,
-                    enableWatermark: bool = False) -> Tuple[Optional[Any], str]:
+                    resolution: str = "540p", watermarkType: str = "gaga",
+                    enhancement: bool = False) -> Tuple[Optional[Any], str]:
         """
         主流程：
         1) 将 IMAGE 编码为 PNG 字节
@@ -387,7 +425,7 @@ class GagaAvartI2VNode:
         """
         try:
             if not self._is_config_ready():
-                return ("错误: gaga_config.json 配置不完整，请填写 base_url 与 cookie",)
+                raise RuntimeError("gaga_config.json 配置不完整，请填写 base_url 与 cookie")
 
             logger.info("[GagaI2V] 开始图生视频流程")
             if prompt:
@@ -403,11 +441,11 @@ class GagaAvartI2VNode:
             if not asset_id or img_w <= 0 or img_h <= 0:
                 return (f"错误: 上传图片响应异常: {json.dumps(asset_info, ensure_ascii=False)}",)
 
-            # 3) 计算裁剪区域（仅 16:9）
-            crop = self._compute_crop(img_w, img_h, 0, 0)
+            # 3) 计算裁剪区域（支持 16:9 / 9:16）
+            crop = self._compute_crop(img_w, img_h, 0, 0, aspectRatio)
 
-            # 4) 提交任务
-            gen_id = self._start_generation(int(asset_id), prompt or "", aspectRatio, int(duration), crop, bool(enableWatermark))
+            # 4) 提交任务（带分辨率、增强、水印设置）
+            gen_id = self._start_generation(int(asset_id), prompt or "", aspectRatio, int(duration), crop, str(watermarkType), bool(enhancement), str(resolution))
 
             # 5) 轮询结果
             gen_data = self._poll_generation(gen_id)
@@ -448,8 +486,12 @@ class GagaAvartI2VNode:
                 f"🔗 视频链接：{video_url or ''}"
             )
 
-            # 下载并转换为 ComfyUI VIDEO 对象
-            video_obj = self._download_and_convert_video(video_url) if video_url else None
+            # 下载并转换为 ComfyUI VIDEO 对象；若失败则抛出明确错误，避免下游拿到 None
+            if not video_url:
+                raise RuntimeError("生成完成但未返回视频URL")
+            video_obj = self._download_and_convert_video(video_url)
+            if video_obj is None:
+                raise RuntimeError("视频下载或解析失败，请稍后重试")
             return (video_obj, generation_info)
 
         except Exception as e:
