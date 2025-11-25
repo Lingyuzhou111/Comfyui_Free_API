@@ -21,6 +21,16 @@
       "ver_no": "d2vpm9le878d6oej97ag",
       "ss": 52
     },
+    "NanoBananaPro_T2I": {
+      "apply_id": "d4ih575e87840sd6gbi0",
+      "ver_no": "",
+      "ss": 52
+    },
+    "NanoBananaPro_I2I": {
+      "apply_id": "d4iht8te8782t1ueplb0",
+      "ver_no": "",
+      "ss": 52
+    },
     "海艺影像 2.0": {
       "model_no": "26058e019e3a0c026e1ad2bfa69e2333",
       "model_ver_no": "f8bd92160ac1555b92de3488a0c4082f30fee233",
@@ -97,3 +107,4 @@
     }
   }
 }
+
