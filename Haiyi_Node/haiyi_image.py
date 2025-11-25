@@ -82,7 +82,7 @@ class HAIYIImageNode:
         """
         定义节点输入：
         - 必选：model(下拉，默认 Seedream 4.0)，prompt(多行文本)
-        - 可选：ratio(默认 3:4)
+        - 可选：ratio(默认 3:4)，resolution(新增，支持1K/2K/4K，默认1K)
         """
         # 动态读取模型选项
         config_path = os.path.join(os.path.dirname(__file__), "haiyi_config.json")
@@ -103,7 +103,8 @@ class HAIYIImageNode:
                 "prompt": ("STRING", {"multiline": True, "default": "液态金属装甲，机动武神"}),
             },
             "optional": {
-                "ratio": (["1:1", "3:4", "4:3", "9:16", "16:9"], {"default": "3:4"}),
+                "ratio": (["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2", "4:5", "5:4", "21:9", "auto"], {"default": "3:4"}),
+                "resolution": (["1K", "2K", "4K"], {"default": "1K"}),
                 "image": ("IMAGE",),
             },
         }
@@ -113,7 +114,7 @@ class HAIYIImageNode:
     FUNCTION = "generate"
     CATEGORY = "🦉FreeAPI/Haiyi"
 
-    def generate(self, model: str, prompt: str, ratio: str = "3:4", image=None):
+    def generate(self, model: str, prompt: str, ratio: str = "3:4", resolution: str = "1K", image=None):
         """
         核心流程：
         - 若提供 image(IMAGE)：按图生图流程
@@ -133,7 +134,7 @@ class HAIYIImageNode:
         # 海艺影像 2.0（官方常规文生图）分支：仅支持文生图，忽略 image；该模型不需要 apply_id/ver_no
         if model == "海艺影像 2.0":
             if image is not None:
-                print("[Haiyi] 提示: ‘海艺影像 2.0’仅支持文生图，image 输入将被忽略")
+                print("[Haiyi] 提示: '海艺影像 2.0'仅支持文生图，image 输入将被忽略")
             t2i_cfg = model_cfg
             model_no = str(t2i_cfg.get("model_no", "")).strip()
             model_ver_no = str(t2i_cfg.get("model_ver_no", "")).strip()
@@ -173,7 +174,7 @@ class HAIYIImageNode:
             print(f"[Haiyi] 提交常规文生图参数: model_no={model_no}, model_ver_no={model_ver_no}, size={width}x{height}")
             task_id, err = self._submit_text_to_img(payload)
             if err:
-                info = f"模型: {model}\n比例: {ratio}\n错误: {err}"
+                info = f"模型: {model}\n比例: {ratio}\n分辨率: {resolution}\n错误: {err}"
                 print(f"[Haiyi] 提交失败: {err}")
                 return (self._blank_image_tensor(), info)
             print(f"[Haiyi] 任务提交返回 task_id={task_id}")
@@ -183,41 +184,73 @@ class HAIYIImageNode:
             if not apply_id:
                 raise RuntimeError(f"模型 {model} 缺少 apply_id。")
 
-            if image is not None:
-                print(f"[Haiyi] 图生图流程开始，模型={model}，ratio={ratio}")
-                img_url = self._upload_image_presign(image, apply_id)
-                print(f"[Haiyi] 上传完成，返回URL: {img_url}")
-                if model == "NanoBanana":
+            # NanoBananaPro 系列模型分支
+            if model in ["NanoBananaPro_T2I", "NanoBananaPro_I2I"]:
+                if model == "NanoBananaPro_T2I" and image is not None:
+                    print("[Haiyi] 提示: 'NanoBananaPro_T2I'仅支持文生图，image 输入将被忽略")
+                if model == "NanoBananaPro_I2I" and image is None:
+                    raise RuntimeError("NanoBananaPro_I2I 需要输入图片")
+                
+                if image is not None and model == "NanoBananaPro_I2I":
+                    # 图生图流程
+                    print(f"[Haiyi] NanoBananaPro图生图流程开始，ratio={ratio}, resolution={resolution}")
+                    img_url = self._upload_image_presign(image, apply_id)
+                    print(f"[Haiyi] 上传完成，返回URL: {img_url}")
                     inputs = [
-                        {"field": "image", "node_id": "2", "node_type": "LoadImage", "val": img_url},
-                        {"field": "prompt", "node_id": "4", "node_type": "SeaArtNanoBanana", "val": prompt},
+                        {"field": "image", "node_id": "4", "node_type": "LoadImage", "val": img_url},
+                        {"field": "image", "node_id": "5", "node_type": "LoadImage", "val": img_url},
+                        {"field": "image", "node_id": "6", "node_type": "LoadImage", "val": img_url},
+                        {"field": "prompt", "node_id": "1", "node_type": "HaiYiNanoBananaPro", "val": prompt},
+                        {"field": "resolution", "node_id": "1", "node_type": "HaiYiNanoBananaPro", "val": resolution},
+                        {"field": "aspect_ratio", "node_id": "1", "node_type": "HaiYiNanoBananaPro", "val": ratio},
                     ]
-                    payload = {"apply_id": apply_id, "inputs": inputs, "ver_no": ver_no, "ss": ss}
                 else:
+                    # 文生图流程
+                    print(f"[Haiyi] NanoBananaPro文生图流程开始，ratio={ratio}, resolution={resolution}")
                     inputs = [
-                        {"field": "image", "node_id": "3", "node_type": "LoadImage", "val": img_url},
-                        {"field": "value", "node_id": "10", "node_type": "String-🔬", "val": prompt},
+                        {"field": "prompt", "node_id": "1", "node_type": "HaiYiNanoBananaPro", "val": prompt},
+                        {"field": "resolution", "node_id": "1", "node_type": "HaiYiNanoBananaPro", "val": resolution},
+                        {"field": "aspect_ratio", "node_id": "1", "node_type": "HaiYiNanoBananaPro", "val": ratio},
                     ]
-                    payload = {"apply_id": apply_id, "inputs": inputs, "ss": ss}
+                payload = {"apply_id": apply_id, "inputs": inputs, "ss": ss}
             else:
-                print(f"[Haiyi] 文生图流程开始，模型={model}，ratio={ratio}")
-                if model == "NanoBanana":
-                    inputs = [
-                        {"field": "prompt", "node_id": "4", "node_type": "SeaArtNanoBanana", "val": prompt},
-                    ]
-                    payload = {"apply_id": apply_id, "inputs": inputs, "ver_no": ver_no, "ss": ss}
+                # 原有模型分支（Seedream 4.0, NanoBanana等）
+                if image is not None:
+                    print(f"[Haiyi] 图生图流程开始，模型={model}，ratio={ratio}")
+                    img_url = self._upload_image_presign(image, apply_id)
+                    print(f"[Haiyi] 上传完成，返回URL: {img_url}")
+                    if model == "NanoBanana":
+                        inputs = [
+                            {"field": "image", "node_id": "2", "node_type": "LoadImage", "val": img_url},
+                            {"field": "prompt", "node_id": "4", "node_type": "SeaArtNanoBanana", "val": prompt},
+                        ]
+                        payload = {"apply_id": apply_id, "inputs": inputs, "ver_no": ver_no, "ss": ss}
+                    else:
+                        inputs = [
+                            {"field": "image", "node_id": "3", "node_type": "LoadImage", "val": img_url},
+                            {"field": "value", "node_id": "10", "node_type": "String-🔬", "val": prompt},
+                        ]
+                        payload = {"apply_id": apply_id, "inputs": inputs, "ss": ss}
                 else:
-                    inputs = [
-                        {"field": "value", "node_id": "11", "node_type": "String-🔬", "val": prompt},
-                        {"field": "ratio", "node_id": "10", "node_type": "HaiYiFilmEdit", "val": ratio},
-                        {"field": "resolution", "node_id": "10", "node_type": "HaiYiFilmEdit", "val": "2K"},
-                    ]
-                    payload = {"apply_id": apply_id, "inputs": inputs, "ver_no": ver_no, "ss": ss}
+                    print(f"[Haiyi] 文生图流程开始，模型={model}，ratio={ratio}")
+                    if model == "NanoBanana":
+                        inputs = [
+                            {"field": "prompt", "node_id": "4", "node_type": "SeaArtNanoBanana", "val": prompt},
+                        ]
+                        payload = {"apply_id": apply_id, "inputs": inputs, "ver_no": ver_no, "ss": ss}
+                    else:
+                        inputs = [
+                            {"field": "value", "node_id": "11", "node_type": "String-🔬", "val": prompt},
+                            {"field": "ratio", "node_id": "10", "node_type": "HaiYiFilmEdit", "val": ratio},
+                            {"field": "resolution", "node_id": "10", "node_type": "HaiYiFilmEdit", "val": "2K"},
+                        ]
+                        payload = {"apply_id": apply_id, "inputs": inputs, "ver_no": ver_no, "ss": ss}
+            
             if 'inputs' in locals():
-                print(f"[Haiyi] 提交参数摘要: apply_id={apply_id}, ver_no={ver_no}, ss={ss}, inputs={inputs}")
+                print(f"[Haiyi] 提交参数摘要: apply_id={apply_id}, ver_no={ver_no if 'ver_no' in locals() else 'N/A'}, ss={ss}, inputs={inputs}")
             task_id, err = self._submit_task(payload)
             if err:
-                info = f"模型: {model}\n比例: {ratio}\n错误: {err}"
+                info = f"模型: {model}\n比例: {ratio}\n分辨率: {resolution}\n错误: {err}"
                 print(f"[Haiyi] 提交失败: {err}")
                 return (self._blank_image_tensor(), info)
             print(f"[Haiyi] 任务提交返回 task_id={task_id}")        
@@ -234,6 +267,7 @@ class HAIYIImageNode:
         info_lines = [
             f"✨ 模型: {model}",
             f"📐 比例: {ratio}",
+            f"📱 分辨率: {resolution}",
             f"🔖 任务ID: {task_id}",
             "🔗 图片链接:" ,
         ]
