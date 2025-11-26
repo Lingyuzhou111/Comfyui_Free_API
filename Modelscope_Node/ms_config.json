@@ -17,8 +17,14 @@
     "qwen_image_edit": {
       "name": "Qwen_Image_Edit",
       "styleType": "QWEN_IMAGE_EDIT",
-      "checkpointModelVersionId": 312623,
-      "checkpointShowInfo": "Qwen-Image-Edit_v1"
+      "checkpointModelVersionId": 382481,
+      "checkpointShowInfo": "Qwen-Image-Edit_v2509"
+    },
+    "z_image_turbo": {
+      "name": "Z-Image-Turbo",
+      "styleType": "Z_IMAGE_TURBO",
+      "checkpointModelVersionId": 469191,
+      "checkpointShowInfo": "Tongyi-MAI/Z-Image-Turbo_master.safetensors"
     },
     "flux_dev": {
       "name": "FLUX",
@@ -355,4 +361,5 @@
   }
 
 } 
+
 
