@@ -104,7 +104,7 @@ class ModelScopeImageWeb:
                 "lora_weight_2": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.1}),
                 "lora_name_3": (lora_options, {"default": "none"}),
                 "lora_weight_3": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.1}),
-                "inference_steps": ("INT", {"default": 30, "min": 20, "max": 50, "step": 1}),
+                "inference_steps": ("INT", {"default": 30, "min": 8, "max": 50, "step": 1}),
                 "cfg_scale": ("FLOAT", {"default": 4.0, "min": 0.1, "max": 20.0, "step": 0.1}),
                 "num_images": (["1", "2", "4"], {"default": "1"}),
             }
@@ -1149,3 +1149,4 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ModelScope_Image_Web": "🦉魔搭生图网页版"
 }
+
