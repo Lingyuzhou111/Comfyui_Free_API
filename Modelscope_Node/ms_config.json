@@ -353,7 +353,7 @@
   "ratios": ["1:1", "phone", "3:4", "4:3", "16:9", "9:16"],
   "ratio_map": {
     "1:1": {"width": 1328, "height": 1328},
-    "phone": {"width": 760, "height": 1664},
+    "phone": {"width": 752, "height": 1664},
     "3:4": {"width": 1104, "height": 1472},
     "4:3": {"width": 1472, "height": 1104},
     "9:16": {"width": 928, "height": 1664},
@@ -361,5 +361,6 @@
   }
 
 } 
+
 
 
