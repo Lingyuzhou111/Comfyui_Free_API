@@ -8,17 +8,41 @@
     "check_interval": 3
   },
   "models": {
+    "qwen_image_2512": {
+      "name": "Qwen-Image-2512",
+      "styleType": "QWEN_IMAGE",
+      "checkpointModelVersionId": 518411,
+      "checkpointShowInfo": "Qwen-Image-2512_master.safetensors"
+    },
+    "qwen_image_realistic": {
+      "name": "Qwen-Image-Realistic",
+      "styleType": "QWEN_IMAGE",
+      "checkpointModelVersionId": 516769,
+      "checkpointShowInfo": "MusePublic/Qwen-Image-Realistic_v1"
+    },
     "qwen_image": {
       "name": "Qwen Image",
       "styleType": "QWEN_IMAGE",
       "checkpointModelVersionId": 275167,
       "checkpointShowInfo": "Qwen Image_v1.safetensors"
     },
-    "qwen_image_edit": {
-      "name": "Qwen_Image_Edit",
+    "qwen_image_edit_2511": {
+      "name": "Qwen-Image-Edit-2511",
+      "styleType": "QWEN_IMAGE_EDIT",
+      "checkpointModelVersionId": 507464,
+      "checkpointShowInfo": "Qwen-Image-Edit-2511_master"
+    },
+    "qwen_image_edit_2509": {
+      "name": "Qwen-Image-Edit-2509",
       "styleType": "QWEN_IMAGE_EDIT",
       "checkpointModelVersionId": 382481,
       "checkpointShowInfo": "Qwen-Image-Edit_v2509"
+    },
+    "z_animimage_turbo": {
+      "name": "Z-AnimImage-Turbo",
+      "styleType": "Z_IMAGE_TURBO",
+      "checkpointModelVersionId": 504024,
+      "checkpointShowInfo": "Laushine/z_animimage_turbo_by_Lau_alpha_V1_V1.0"
     },
     "z_image_turbo": {
       "name": "Z-Image-Turbo",
@@ -361,6 +385,7 @@
   }
 
 } 
+
 
 
 
