@@ -50,6 +50,12 @@
       "checkpointModelVersionId": 469191,
       "checkpointShowInfo": "Tongyi-MAI/Z-Image-Turbo_master.safetensors"
     },
+    "flux.2_dev": {
+      "name": "FLUX.2-Dev",
+      "styleType": "FLUX",
+      "checkpointModelVersionId": 470140,
+      "checkpointShowInfo": "FLUX.2-dev_master"
+    },
     "flux_dev": {
       "name": "FLUX",
       "styleType": "FLUX",
@@ -385,6 +391,7 @@
   }
 
 } 
+
 
 
 
