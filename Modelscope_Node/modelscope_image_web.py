@@ -22,7 +22,7 @@ class ModelScopeImageWeb:
     - Lora支持：可串联使用最多3个Lora模型
     - 多种图片比例：支持1:1、4:3、16:9等多种比例
     
-    输入参数：prompt, model, ratio, ref_image(可选), lora_name_1/2/3, lora_weight_1/2/3
+    输入参数：prompt, model, ratio, ref_image(可选), lora_name_1/2/3/4, lora_weight_1/2/3/4
     输出：image（生成的图片）, generation_info（生成信息）
     """
     def __init__(self):
@@ -64,8 +64,14 @@ class ModelScopeImageWeb:
         # 加载模型配置
         self.models = self.config.get('models', {})
         
-        # 加载lora配置
-        self.lora_map = self.config.get('lora_map', {})
+        # 加载lora配置（改为从独立的 lora_map.json 读取）
+        try:
+            lora_map_path = os.path.join(os.path.dirname(__file__), 'lora_map.json')
+            with open(lora_map_path, 'r', encoding='utf-8') as lf:
+                self.lora_map = json.load(lf)
+        except Exception as e:
+            print(f"[魔搭生图网页版] 加载lora_map.json失败，将使用空配置。错误: {e}")
+            self.lora_map = {}
         
         # 加载比例配置
         self.ratio_map = self.config.get('ratio_map', {})
@@ -86,8 +92,14 @@ class ModelScopeImageWeb:
         # 比例选项
         ratios = config.get('ratios', ['1:1', '1:2', '3:4', '4:3', '16:9', '9:16'])
         
-        # Lora选项
-        lora_map = config.get('lora_map', {})
+        # Lora选项（改为从独立的 lora_map.json 读取）
+        try:
+            lora_map_path = os.path.join(os.path.dirname(__file__), 'lora_map.json')
+            with open(lora_map_path, 'r', encoding='utf-8') as lf:
+                lora_map = json.load(lf) or {}
+        except Exception as e:
+            print(f"[魔搭生图网页版] 读取lora_map.json失败，将仅提供'none'选项。错误: {e}")
+            lora_map = {}
         lora_options = ['none'] + list(lora_map.keys())
         
         return {
@@ -98,15 +110,17 @@ class ModelScopeImageWeb:
             },
             "optional": {
                 "ref_image": ("IMAGE",),
-                "lora_name_1": (lora_options, {"default": "none"}),
-                "lora_weight_1": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.1}),
-                "lora_name_2": (lora_options, {"default": "none"}),
-                "lora_weight_2": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.1}),
-                "lora_name_3": (lora_options, {"default": "none"}),
-                "lora_weight_3": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.1}),
-                "inference_steps": ("INT", {"default": 30, "min": 8, "max": 50, "step": 1}),
-                "cfg_scale": ("FLOAT", {"default": 4.0, "min": 0.1, "max": 20.0, "step": 0.1}),
                 "num_images": (["1", "2", "4"], {"default": "1"}),
+                "inference_steps": ("INT", {"default": 30, "min": 8, "max": 50, "step": 1}),
+                "cfg_scale": ("FLOAT", {"default": 4.0, "min": 1.5, "max": 20.0, "step": 0.1}),
+                "lora_name_1": (lora_options, {"default": "none"}),
+                "lora_weight_1": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.01}),
+                "lora_name_2": (lora_options, {"default": "none"}),
+                "lora_weight_2": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.01}),
+                "lora_name_3": (lora_options, {"default": "none"}),
+                "lora_weight_3": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.01}),
+                "lora_name_4": (lora_options, {"default": "none"}),
+                "lora_weight_4": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.01}),
             }
         }
 
@@ -115,7 +129,7 @@ class ModelScopeImageWeb:
     FUNCTION = "generate"
     CATEGORY = "🦉FreeAPI/ModelScope"
 
-    def generate(self, prompt, model, ratio, ref_image=None, lora_name_1="none", lora_weight_1=1.0, lora_name_2="none", lora_weight_2=1.0, lora_name_3="none", lora_weight_3=1.0, inference_steps=30, cfg_scale=4.0, num_images="1"):
+    def generate(self, prompt, model, ratio, ref_image=None, lora_name_1="none", lora_weight_1=1.0, lora_name_2="none", lora_weight_2=1.0, lora_name_3="none", lora_weight_3=1.0, lora_name_4="none", lora_weight_4=1.0, inference_steps=30, cfg_scale=4.0, num_images="1"):
         """
         主生成方法：
         调用ModelScope Image API进行文本到图像生成或图像到图像生成。
@@ -126,8 +140,8 @@ class ModelScopeImageWeb:
             model: 使用的模型名称
             ratio: 图片比例（如1:1、4:3等）
             ref_image: 可选，参考图片（用于图生图模式）
-            lora_name_1/2/3: Lora模型名称
-            lora_weight_1/2/3: Lora权重（0.1-2.0）
+            lora_name_1/2/3/4: Lora模型名称
+            lora_weight_1/2/3/4: Lora权重（0.1-2.0）
             
         Returns:
             tuple: (生成的图片tensor, 生成信息JSON字符串)
@@ -138,7 +152,7 @@ class ModelScopeImageWeb:
             mode_text = "图生图" if is_img2img else "文生图"
             
             print(f"[魔搭生图网页版] 开始{mode_text}，参数: prompt='{prompt}', model='{model}', ratio='{ratio}'")
-            print(f"[魔搭生图网页版] Lora参数: lora1='{lora_name_1}'(权重{lora_weight_1}), lora2='{lora_name_2}'(权重{lora_weight_2}), lora3='{lora_name_3}'(权重{lora_weight_3})")
+            print(f"[魔搭生图网页版] Lora参数: lora1='{lora_name_1}'(权重{lora_weight_1:.2f}), lora2='{lora_name_2}'(权重{lora_weight_2:.2f}), lora3='{lora_name_3}'(权重{lora_weight_3:.2f}), lora4='{lora_name_4}'(权重{lora_weight_4:.2f})")
             
             # 获取模型信息
             model_info = self.models.get(model, self.models.get('qwen', {}))
@@ -149,6 +163,23 @@ class ModelScopeImageWeb:
             lora_list = []
             lora_names = []
             lora_weights = []
+            # 统一将 Lora 权重控制为两位小数（无论用户输入还是最终提交）
+            try:
+                lora_weight_1 = round(float(lora_weight_1), 2)
+            except Exception:
+                pass
+            try:
+                lora_weight_2 = round(float(lora_weight_2), 2)
+            except Exception:
+                pass
+            try:
+                lora_weight_3 = round(float(lora_weight_3), 2)
+            except Exception:
+                pass
+            try:
+                lora_weight_4 = round(float(lora_weight_4), 2)
+            except Exception:
+                pass
             
             # 检查第一个lora
             if lora_name_1 != "none":
@@ -194,6 +225,21 @@ class ModelScopeImageWeb:
                     print(f"[魔搭生图网页版] 使用Lora3: {lora_name_3}, 权重: {lora_weight_3}")
                 else:
                     print(f"[魔搭生图网页版] 警告: 不支持的Lora3: {lora_name_3}")
+            
+            # 检查第四个lora
+            if lora_name_4 != "none":
+                lora_config = self.lora_map.get(lora_name_4)
+                if lora_config:
+                    lora_list.append({
+                        "name": lora_name_4,
+                        "modelVersionId": int(lora_config.get("modelVersionId", "0")),
+                        "scale": lora_weight_4
+                    })
+                    lora_names.append(lora_name_4)
+                    lora_weights.append(lora_weight_4)
+                    print(f"[魔搭生图网页版] 使用Lora4: {lora_name_4}, 权重: {lora_weight_4}")
+                else:
+                    print(f"[魔搭生图网页版] 警告: 不支持的Lora4: {lora_name_4}")
             
             # 根据lora触发词构建最终提示词
             final_prompt = self._build_prompt_with_trigger_words(prompt, lora_list) if lora_list else prompt
@@ -253,26 +299,35 @@ class ModelScopeImageWeb:
             # 批量下载并转换为batch
             image_tensor = self._download_and_convert_images(image_urls)
             
-            # 构建生成信息（兼容：保留第一张 image_url）
-            generation_info = {
-                "image_url": image_urls[0],
-                "image_urls": image_urls,
-                "remaining_count": remaining_count,
-                "model": model,
-                "ratio": ratio,
-                "mode": mode_text,
-                "lora_names": lora_names if lora_names else None,
-                "lora_weights": lora_weights if lora_weights else None,
-                "prompt_final": final_prompt,
-                "prompt_original": prompt,
-                "ref_image_url": ref_image_url if is_img2img else None,
-                "ref_image_id": ref_image_id if is_img2img else None
-            }
+            # 构建更可读的生成说明文本
+            try:
+                mode_detail = f"{'专业模式' if model_info.get('checkpointModelVersionId') else '快速模式'}-{mode_text}"
+                if lora_names:
+                    model_text = f"{model} + {len(lora_names)}个lora: {', '.join(lora_names)}"
+                else:
+                    model_text = model
+                image_links_text = "\n".join(image_urls)
+                ref_line = f"🖼️ 参考图: {ref_image_url}\n" if (is_img2img and ref_image_url) else ""
+                generation_info_text = (
+                    f"✨ 任务类型: {mode_detail}\n"
+                    f"🎨 模型名称: {model_text}\n"
+                    f"📝 提示词: {prompt}\n"
+                    f"📐 比例: {ratio}\n"
+                    f"🔢 数量: {len(image_urls)}\n"
+                    f"{ref_line}"
+                    f"🔗 图片链接: \n{image_links_text}"
+                )
+            except Exception:
+                # 兜底，避免任何格式化失败影响主流程
+                generation_info_text = f"任务类型: {mode_text}, 模型: {model}, 比例: {ratio}, 数量: {len(image_urls)}"
+
+            # 仅返回格式化后的说明文本
+            generation_info = generation_info_text
             
             print(f"[魔搭生图网页版] 图片生成成功，共 {len(image_urls)} 张: {image_urls}")
             print(f"[魔搭生图网页版] 剩余次数: {remaining_count}")
             
-            return (image_tensor, json.dumps(generation_info, ensure_ascii=False))
+            return (image_tensor, generation_info)
             
         except Exception as e:
             print(f"[魔搭生图网页版] 生成失败: {str(e)}")
@@ -1149,4 +1204,3 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ModelScope_Image_Web": "🦉魔搭生图网页版"
 }
-
