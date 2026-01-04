@@ -1,0 +1,457 @@
+{
+  "ZIT_小红薯纯御摄影": {
+    "modelName": "QJqingjiu/Z-image_Realistic_Photography",
+    "modelVersionId": "480048",
+    "triggerWord": "qing",
+    "weight": 1.0
+  },
+  "ZIT_图图的嗨丝": {
+    "modelName": "zhaotutu12/TuTus-HiSilk-Z-Image-Turbo-8D-Black-Aurora-Glossy-Black-Stockings-Over-the-Knee-Stockings",
+    "modelVersionId": "474719",
+    "triggerWord": "tutujiguanghaisiv1",
+    "weight": 1.0
+  },
+  "ZIT_kenken": {
+    "modelName": "nanasekiss/kenkenzit",
+    "modelVersionId": "478761",
+    "triggerWord": "kenken",
+    "weight": 1.0
+  },
+  "ZIT_Lenovo超写实": {
+    "modelName": "fireicewolf/Lenovo_UltraReal_Z_Image_Turbo",
+    "modelVersionId": "487628",
+    "triggerWord": "kenken",
+    "weight": 1.0
+  },
+  "ZIT_kook真实幻想": {
+    "modelName": "KookYan/Kook_Zimage_Zshx_Turbo",
+    "modelVersionId": "478117",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "ZIT_脸模CH": {
+    "modelName": "wxj916/CH",
+    "modelVersionId": "503538",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_麦橘美人": {
+    "modelName": "merjic/majicbeauty-qwen1",
+    "modelVersionId": "282253",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_极致写实": {
+    "modelName": "Lingyuzhou/Qwen_Lenovo_UltraReal",
+    "modelVersionId": "314073",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_创意艺术字": {
+    "modelName": "Lingyuzhou/Qwen_Artistic_fonts_v1",
+    "modelVersionId": "293125",
+    "triggerWord": "创意艺术字",
+    "weight": 1.0
+  },
+  "QWEN_浪浪山": {
+    "modelName": "Lingyuzhou/Qwen_Nobody_v1",
+    "modelVersionId": "306771",
+    "triggerWord": "llsxyg",
+    "weight": 1.0
+  },
+  "QWEN_WQ": {
+    "modelName": "Lingyuzhou/Qwen_Wanqian",
+    "modelVersionId": "301535",
+    "triggerWord": "wq",
+    "weight": 1.0
+  },
+  "QWEN_LYF": {
+    "modelName": "Lingyuzhou/Qwen_Feifei",
+    "modelVersionId": "295290",
+    "triggerWord": "lyf",
+    "weight": 1.0
+  },
+  "QWEN_CWJ": {
+    "modelName": "Lingyuzhou/Qwen_Caiwenjing",
+    "modelVersionId": "294443",
+    "triggerWord": "cwj",
+    "weight": 1.0
+  },
+  "QWEN_GLNZ": {
+    "modelName": "Lingyuzhou/Qwen_Nazha",
+    "modelVersionId": "295678",
+    "triggerWord": "nazha",
+    "weight": 1.0
+  },
+  "QWEN_GYY": {
+    "modelName": "ambershine007/gyy005",
+    "modelVersionId": "321411",
+    "triggerWord": "gyy001",
+    "weight": 1.0
+  },  
+  "QWEN_电影海报": {
+    "modelName": "Lingyuzhou/LYZ_Movie_Poster",
+    "modelVersionId": "319796",
+    "triggerWord": "",
+    "weight": 0.8
+  },
+  "QWEN_千问汉服": {
+    "modelName": "adlfblood/QWEN_HANFU",
+    "modelVersionId": "313753",
+    "triggerWord": "",
+    "weight": 0.8
+  },
+  "QWEN_咖啡猫海报": {
+    "modelName": "Kafeimaomi/KFM-poster",
+    "modelVersionId": "286687",
+    "triggerWord": "poster",
+    "weight": 1.0
+  },
+  "QWEN_蓝牙海报": {
+    "modelName": "LYshuahshouji/movieposter",
+    "modelVersionId": "290116",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_甜妹": {
+    "modelName": "wilderkid/Rednote_SweetGirl",
+    "modelVersionId": "288083",
+    "triggerWord": "sweet girl",
+    "weight": 1.0
+    },
+  "QWEN_AI模特": {
+    "modelName": "qin8788/shangyeguangao",
+    "modelVersionId": "382358",
+    "triggerWord": "sus",
+    "weight": 1.0
+  },
+  "QWEN_阿泽写实": {
+    "modelName": "Azer1011/Azer-QWEN",
+    "modelVersionId": "368453",
+    "triggerWord": "",
+    "weight": 1.0
+  },  "QWEN_剪纸": {
+    "modelName": "colouryzy/jianzhi_v3",
+    "modelVersionId": "394276",
+    "triggerWord": "2d3d结合",
+    "weight": 1.0
+  },
+  "QWEN_kook稳定": {
+    "modelName": "KookYan/Kook_xieshi_Kook_Qwen",
+    "modelVersionId": "300294",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_kook美人": {
+    "modelName": "KookYan/Kook_xieshi_Kook_Qwen_V2",
+    "modelVersionId": "306326",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_kook设计": {
+    "modelName": "KookYan/Kook_Qwen_qmsj",
+    "modelVersionId": "309959",
+    "triggerWord": "",
+    "weight": 1.0
+  },  
+  "QWEN_kook写实": {
+    "modelName": "KookYan/Kook_Qwen_JIZHIZHENSHI",
+    "modelVersionId": "346999",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_kook幻想": {
+    "modelName": "KookYan/Kook_Qwen_ZSHX",
+    "modelVersionId": "382470",
+    "triggerWord": "",
+    "weight": 0.7
+  },
+  "QWEN_梦核": {
+    "modelName": "WANGMOON/qwen.dream.v1",
+    "modelVersionId": "301336",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_pretty": {
+    "modelName": "WANGMOON/qwen.pretty.v5",
+    "modelVersionId": "295865",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_mira": {
+    "modelName": "MTWLDFC/miratsu_style",
+    "modelVersionId": "295006",
+    "triggerWord": "miratsu style",
+    "weight": 1.0
+    },
+  "QWEN_暗调": {
+    "modelName": "threebaoziyikoumen/SamAlive1.2",
+    "modelVersionId": "312356",
+    "triggerWord": "",
+    "weight": 1.0
+    },
+  "QWEN_毛绒玩具": {
+    "modelName": "dumbdumbdeer/Qwen-plushtoy",
+    "modelVersionId": "344912",
+    "triggerWord": "plushtoy",
+    "weight": 0.8
+  },  
+  "QWEN_童趣插画": {
+    "modelName": "dumbdumbdeer/Qwen-simpleflat",
+    "modelVersionId": "336192",
+    "triggerWord": "simpleflat",
+    "weight": 0.8
+  },
+  "QWEN_鸟山明": {
+    "modelName": "jcplus/niaoshanming2",
+    "modelVersionId": "335663",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_二次元": {
+    "modelName": "jcplus/timeless_ani_style",
+    "modelVersionId": "333170",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_纸雕": {
+    "modelName": "芥子须弥 - 纸雕手工艺术",
+    "modelVersionId": "336030",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_灰仭": {
+    "modelName": "jcplus/kaijin_fugeki",
+    "modelVersionId": "341190",
+    "triggerWord": "",
+    "weight": 1.0
+    },
+  "QWEN_鹿佬手绘": {
+    "modelName": "dumbdumbdeer/Qwen-ludrawing-style",
+    "modelVersionId": "311141",
+    "triggerWord": "ludraw",
+    "weight": 1.0
+    },
+  "QWEN_3D玻璃": {
+    "modelName": "bozaiModelSpace/3Dglass_Qwen",
+    "modelVersionId": "297835",
+    "triggerWord": "3Dglass",
+    "weight": 1.0
+    },
+  "QWEN_小红书插画": {
+    "modelName": "w405119511/XiaoHongShuHB",
+    "modelVersionId": "304552",
+    "triggerWord": "XiaoHongshuCH",
+    "weight": 1.0
+    },
+  "QWEN_柳眉": {
+    "modelName": "knoic001/liumei",
+    "modelVersionId": "283239",
+    "triggerWord": "liumei",
+    "weight": 1.0
+  },
+  "QWEN_柳神": {
+    "modelName": "laonansheng/Qwen-Realistic-Liushen-Wanmeishijie-v1.0 ckpt-20",
+    "modelVersionId": "283656",
+    "triggerWord": "qls",
+    "weight": 1.0
+  },
+  "QWEN_曹颖": {
+    "modelName": "laonansheng/Qwen-Realistic-Caoying-DoupoCangqiong-v1.0",
+    "modelVersionId": "282327",
+    "triggerWord": "qxs",
+    "weight": 1.0
+  },
+  "QWEN_kenken": {
+    "modelName": "nanasekiss/kenken30v1.0",
+    "modelVersionId": "284308",
+    "triggerWord": "kenken",
+    "weight": 1.0
+  },
+  "QWEN_逆流脸模": {
+    "modelName": "Luxh23/niliuL",
+    "modelVersionId": "318978",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_逆流蓝橘": {
+    "modelName": "Luxh23/niliuLJ",
+    "modelVersionId": "317424",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_xn脸模": {
+    "modelName": "xnmodel/cnfemale18",
+    "modelVersionId": "369683",
+    "triggerWord": "xnmodel",
+    "weight": 0.8
+  },
+  "QWEN_瓜女郎": {
+    "modelName": "guahunyo/gua009",
+    "modelVersionId": "365553",
+    "triggerWord": "gua009",
+    "weight": 1.0
+  },
+  "QWEN_事业线": {
+    "modelName": "抖音小红书事业线美女",
+    "modelVersionId": "338726",
+    "triggerWord": "with prominent breasts,Career line",
+    "weight": 0.8
+  },
+  "QWEN_SRL": {
+    "modelName": "LeoSasion/SunRimLight_V1",
+    "modelVersionId": "332913",
+    "triggerWord": "add SRL",
+    "weight": 1.0
+  },
+  "QWEN_XC-Girl": {
+    "modelName": "laonansheng/Qwen-XC-Girl-v1.0",
+    "modelVersionId": "318348",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_RFF": {
+    "modelName": "laonansheng/Qwen-Ruanfufu-v1.0",
+    "modelVersionId": "364438",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_COS秀": {
+    "modelName": "ShiHongXing666/qwen_CosShow2",
+    "modelVersionId": "356132",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_大师姐": {
+    "modelName": "WuYiNeng/qwen_hanfuDashijie",
+    "modelVersionId": "360203",
+    "triggerWord": "汉服大师姐",
+    "weight": 1.0
+  },
+  "QWEN_性感": {
+    "modelName": "S19827760/TANK",
+    "modelVersionId": "342086",
+    "triggerWord": "性感女人",
+    "weight": 1.0
+  },
+  "QWEN_丰满": {
+    "modelName": "ZIMOAIGC/FengmanGirl2025",
+    "modelVersionId": "297030",
+    "triggerWord": "FengmanGirl",
+    "weight": 1.0
+  },
+  "QWEN_后妈裙": {
+    "modelName": "flyin022602068/xingganbaotunqun",
+    "modelVersionId": "344866",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_吉卜力": {
+    "modelName": "ModelE/ghibli-qwen-image-1 ckpt-10",
+    "modelVersionId": "287174",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_真实感": {
+    "modelName": "zhy179186/zhenshi40 ckpt-50",
+    "modelVersionId": "288103",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_DL": {
+    "modelName": "gonghu/qwen-duliu_ckpt-20",
+    "modelVersionId": "287211",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_LFP": {
+    "modelName": "LargeFormatPhotography_ckpt-20",
+    "modelVersionId": "287857",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_御姐": {
+    "modelName": "yhz179186/yujie53_ckpt-27",
+    "modelVersionId": "288023",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_胶片": {
+    "modelName": "dddd5555/jp555_ckpt-20",
+    "modelVersionId": "288141",
+    "triggerWord": "jp",
+    "weight": 1.0
+  },
+  "EDIT_人脸生成图像": {
+    "modelName": "DiffSynth-Studio/Qwen-Image-Edit-F2P",
+    "modelVersionId": "408910",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "EDIT_场景编辑": {
+    "modelName": "Lingyuzhou/qwen-image-edit-inscene-lora",
+    "modelVersionId": "317221",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "EDIT_手办": {
+    "modelName": "codexsharp/nano-banana-hd",
+    "modelVersionId": "337888",
+    "triggerWord": "banana",
+    "weight": 1.0
+  },
+  "FLUX_古风通用": {
+    "modelName": "F.1_古风通用",
+    "modelVersionId": "152141",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "FLUX_宫崎骏": {
+    "modelName": "F.1_宫崎骏漫画风吉卜力风格",
+    "modelVersionId": "80982",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "FLUX_战国二次元": {
+    "modelName": "F.1_戰國二次元风(一丹一世界)",
+    "modelVersionId": "18239",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "FLUX_电商摄影": {
+    "modelName": "F.1_电商超现实摄影_ckpt-20",
+    "modelVersionId": "105270",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "FLUX_抖音小红书": {
+    "modelName": "F.1_抖音小红书极致逼真",
+    "modelVersionId": "21169",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "MAJIC_水彩万象": {
+    "modelName": "F.1_水彩万象(一丹一世界)",
+    "modelVersionId": "44321",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "MAJIC_麦橘超Q": {
+    "modelName": "F.1_MAJICFLUS-麦橘超Q_v1.0",
+    "modelVersionId": "18064",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "MAJIC_闪光情绪": {
+    "modelName": "F.1_《MAJICFLUS 闪光情绪》_v1.0",
+    "modelVersionId": "17827",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "KONTEXT_复古日漫": {
+    "modelName": "ANAN001/Anime6",
+    "modelVersionId": "270942",
+    "triggerWord": "Anime",
+    "weight": 1.0
+  } 
+}
