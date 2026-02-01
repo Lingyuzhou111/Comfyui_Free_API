@@ -400,6 +400,12 @@
     "triggerWord": "banana",
     "weight": 1.0
   },
+  "Flux2 Klein 9B 动漫转写实真人": {
+    "modelName": "zhouwenbin1994/Klein9BAnythingtoRealC",
+    "modelVersionId": "574529",
+    "triggerWord": "转年轻的亚洲少女写实风格",
+    "weight": 1.0
+  },
   "FLUX_古风通用": {
     "modelName": "F.1_古风通用",
     "modelVersionId": "152141",
