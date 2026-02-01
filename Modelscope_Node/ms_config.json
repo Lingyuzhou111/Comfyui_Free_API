@@ -44,11 +44,29 @@
       "checkpointModelVersionId": 504024,
       "checkpointShowInfo": "Laushine/z_animimage_turbo_by_Lau_alpha_V1_V1.0"
     },
+    "z_image": {
+      "name": "Z-Image",
+      "styleType": "Z_IMAGE",
+      "checkpointModelVersionId": 569345,
+      "checkpointShowInfo": "造相-Z-Image_master.safetensors"
+    },
+    " Z image turbo 淡妆浓抹 3.0": {
+      "name": "BEYOND REALITY Z IMAGE 3.0",
+      "styleType": "BEYOND_REALITY_Z_IMAGE",
+      "checkpointModelVersionId": 581121,
+      "checkpointShowInfo": "Nurburgring/BEYOND_REALITY_Z_IMAGE_淡妆浓抹 3.0.safetensors"
+    },
     "z_image_turbo": {
       "name": "Z-Image-Turbo",
       "styleType": "Z_IMAGE_TURBO",
       "checkpointModelVersionId": 469191,
       "checkpointShowInfo": "Tongyi-MAI/Z-Image-Turbo_master.safetensors"
+    },
+    "FLUX.2-klein-9B_2.0": {
+      "name": "FLUX.2-klein-9B_2.0",
+      "styleType": "FLUX.2-klein-9B_2.0",
+      "checkpointModelVersionId": 556077,
+      "checkpointShowInfo": "KanKanKan/Black-forest-labs-FLUX.2-klein-9B"
     },
     "flux.2_dev": {
       "name": "FLUX.2-Dev",
@@ -96,10 +114,10 @@
       "checkpointShowInfo": "INK_PAINTING"
     }
   },
-  "ratios": ["1:1", "1:2", "3:4", "4:3", "16:9", "9:16"],
+  "ratios": ["phone", "1:1", "1:2", "3:4", "4:3", "16:9", "9:16"],
   "ratio_map": {
-    "1:1": {"width": 1328, "height": 1328},
     "phone": {"width": 752, "height": 1664},
+    "1:1": {"width": 1328, "height": 1328},
     "1:2": {"width": 832, "height": 1664},
     "3:4": {"width": 1104, "height": 1472},
     "4:3": {"width": 1472, "height": 1104},
@@ -107,5 +125,3 @@
     "16:9": {"width": 1664, "height": 928}
   }
 } 
-
-
