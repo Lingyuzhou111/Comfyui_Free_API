@@ -185,18 +185,6 @@
       "QWEN_事业线": {
         "repoid": "抖音小红书事业线美女",
         "triggerWord": "with prominent breasts,Career line"
-      },      
-      "QWEN_性感": {
-        "repoid": "S19827760/TANK",
-        "triggerWord": "性感女人"
-      },
-      "QWEN_丰满": {
-        "repoid": "ZIMOAIGC/FengmanGirl2025",
-        "triggerWord": "FengmanGirl"
-      },
-      "QWEN_后妈裙": {
-        "repoid": "flyin022602068/xingganbaotunqun",
-        "triggerWord": ""
       }
     },
   "ratios": ["1:1", "2:3", "3:4", "4:3", "3:2", "16:9", "9:16"],
@@ -220,4 +208,5 @@
         "9:16": {"width": 768, "height": 1344},
         "21:9": {"width": 1512, "height": 648}
     }
+
 }
