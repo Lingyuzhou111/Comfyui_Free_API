@@ -38,17 +38,17 @@
       "checkpointModelVersionId": 382481,
       "checkpointShowInfo": "Qwen-Image-Edit_v2509"
     },
-    "z_animimage_turbo": {
-      "name": "Z-AnimImage-Turbo",
-      "styleType": "Z_IMAGE_TURBO",
-      "checkpointModelVersionId": 504024,
-      "checkpointShowInfo": "Laushine/z_animimage_turbo_by_Lau_alpha_V1_V1.0"
-    },
     "z_image": {
       "name": "Z-Image",
       "styleType": "Z_IMAGE",
       "checkpointModelVersionId": 569345,
       "checkpointShowInfo": "造相-Z-Image_master.safetensors"
+    },
+    "z_image_turbo": {
+      "name": "Z-Image-Turbo",
+      "styleType": "Z_IMAGE_TURBO",
+      "checkpointModelVersionId": 469191,
+      "checkpointShowInfo": "Tongyi-MAI/Z-Image-Turbo_master.safetensors"
     },
     " Z image turbo 淡妆浓抹 3.0": {
       "name": "BEYOND REALITY Z IMAGE 3.0",
@@ -56,11 +56,11 @@
       "checkpointModelVersionId": 581121,
       "checkpointShowInfo": "Nurburgring/BEYOND_REALITY_Z_IMAGE_淡妆浓抹 3.0.safetensors"
     },
-    "z_image_turbo": {
-      "name": "Z-Image-Turbo",
+    "z_animimage_turbo": {
+      "name": "Z-AnimImage-Turbo",
       "styleType": "Z_IMAGE_TURBO",
-      "checkpointModelVersionId": 469191,
-      "checkpointShowInfo": "Tongyi-MAI/Z-Image-Turbo_master.safetensors"
+      "checkpointModelVersionId": 504024,
+      "checkpointShowInfo": "Laushine/z_animimage_turbo_by_Lau_alpha_V1_V1.0"
     },
     "FLUX.2-klein-9B_2.0": {
       "name": "FLUX.2-klein-9B_2.0",
@@ -125,3 +125,4 @@
     "16:9": {"width": 1664, "height": 928}
   }
 } 
+
