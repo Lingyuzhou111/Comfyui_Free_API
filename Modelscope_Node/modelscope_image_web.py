@@ -27,7 +27,7 @@ class ModelScopeImageWeb:
     """
     def __init__(self):
         # 读取配置文件
-        config_path = os.path.join(os.path.dirname(__file__), 'ms_config.json')
+        config_path = os.path.join(os.path.dirname(__file__), 'ms_web_config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
             self.config = json.load(f)
         
@@ -80,7 +80,7 @@ class ModelScopeImageWeb:
     @classmethod
     def INPUT_TYPES(cls):
         # 动态读取ModelScope模型选项
-        config_path = os.path.join(os.path.dirname(__file__), 'ms_config.json')
+        config_path = os.path.join(os.path.dirname(__file__), 'ms_web_config.json')
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
             models = config.get('models', {})
@@ -111,7 +111,7 @@ class ModelScopeImageWeb:
             "optional": {
                 "ref_image": ("IMAGE",),
                 "num_images": (["1", "2", "4"], {"default": "1"}),
-                "inference_steps": ("INT", {"default": 30, "min": 8, "max": 50, "step": 1}),
+                "inference_steps": ("INT", {"default": 30, "min": 4, "max": 50, "step": 1}),
                 "cfg_scale": ("FLOAT", {"default": 4.0, "min": 1.5, "max": 20.0, "step": 0.1}),
                 "lora_name_1": (lora_options, {"default": "none"}),
                 "lora_weight_1": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 2.0, "step": 0.01}),
