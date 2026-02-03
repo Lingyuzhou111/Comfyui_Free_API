@@ -1,0 +1,223 @@
+{
+  "modelscope_image_api": {
+      "base_url": "https://api-inference.modelscope.cn/v1/images/generations",
+      "api_key": ""
+      },
+  "checkpoint": [
+      "Tongyi-MAI/Z-Image", 
+      "Tongyi-MAI/Z-Image-Turbo", 
+      "Qwen/Qwen-Image",
+      "Wuli-Art/Qwen-Image-Realistic",
+      "Qwen/Qwen-Image-2512",
+      "Nurburgring/Beyond_Qwen_Image_2512",
+      "black-forest-labs/FLUX.1-Krea-dev", 
+      "MusePublic/489_ckpt_FLUX_1"
+      ], 
+  "lora_map": {
+      "Qwen2512_2步加速lora": {
+        "repoid": "Wuli-Art/Qwen-Image-2512-Turbo-LoRA-2-Steps",
+        "triggerWord": ""
+      },
+      "Qwen2512_Kook极致真实V3": {
+        "repoid": "KookYan/Kook_Qwen_2512_jzzs",
+        "triggerWord": ""
+      },
+      "Qwen2512_Kook真实幻想V2": {
+        "repoid": "KookYan/KOOK_Qwen_2512_zshx_V2",
+        "triggerWord": ""
+      },
+      "ZIT_小红薯纯御摄影": {
+        "repoid": "QJqingjiu/Z-image_Realistic_Photography",
+        "triggerWord": "qing"
+      },
+      "ZIT_图图的嗨丝": {
+        "repoid": "zhaotutu12/TuTus-HiSilk-Z-Image-Turbo-8D-Black-Aurora-Glossy-Black-Stockings-Over-the-Knee-Stockings",
+        "triggerWord": "tutujiguanghaisiv1"
+      },
+      "ZIT_kenken": {
+        "repoid": "nanasekiss/kenkenzit",
+        "triggerWord": "kenken"
+      },
+      "ZIT_Lenovo超写实": {
+        "repoid": "fireicewolf/Lenovo_UltraReal_Z_Image_Turbo",
+        "triggerWord": ""
+      },
+      "ZIT_kook真实幻想": {
+        "repoid": "KookYan/Kook_Zimage_Zshx_Turbo",
+        "triggerWord": ""
+      },
+      "ZIT_脸模CH": {
+        "repoid": "wxj916/CH",
+        "triggerWord": ""
+      },
+      "ZIT_雯雯的后宫-电影氛围": {
+        "repoid": "jonathanfu/Z-Image-fenwei",
+        "triggerWord": ""
+      },
+      "ZIT-多合一控制模型补丁": {
+        "repoid": "maozukao/Z-image-turbo-fun-unionunion-controlnet",
+        "triggerWord": ""
+      },
+      "ZIT-年年V1": {
+        "repoid": "laonansheng/meixiong-niannian-Z-Image-Turbo-Tongyi-MAI-v1.0",
+        "triggerWord": ""
+      },
+      "ZIT_年年V2": {
+        "repoid": "laonansheng/niannian2-meinv-Z-Image-Turbo-Tongyi-MAI-v1.0",
+        "triggerWord": ""
+      },
+      "ZIT-亚洲美女": {
+        "repoid": "laonansheng/Asian-beauty-Z-Image-Turbo-Tongyi-MAI-v1.0",
+        "triggerWord": ""
+      },
+      "ZIT-安妙依": {
+        "repoid": "laonansheng/anmiaoyi-meinv-Z-Image-Turbo-Tongyi-MAI-v1.0",
+        "triggerWord": ""
+      },
+      "ZIT-小蛮腰": {
+        "repoid": "laonansheng/xiaomanyao-Z-Image-Turbo-Tongyi-MAI-v1.0",
+        "triggerWord": ""
+      },
+      "ZIT_T翩翩-服装3": {
+        "repoid": "laonansheng/Tpianpian-fuzhuang3-Z-Image-Turbo-Tongyi-MAI-v1.0",
+        "triggerWord": ""
+      },
+      "ZIT_霜儿汉服": {
+        "repoid": "laonansheng/shuanger-hanfu-Z-Image-Turbo-Tongyi-MAI-v1.0",
+        "triggerWord": ""
+      },
+      "ZIT_脸模XB": {
+        "repoid": "Liudef/XB_ZIMAGE_FACE_1",
+        "triggerWord": ""
+      },
+      "QWEN_麦橘美人": {
+        "repoid": "merjic/majicbeauty-qwen1",
+        "triggerWord": ""
+      },
+      "QWEN_极致写实": {
+        "repoid": "Lingyuzhou/Qwen_Lenovo_UltraReal",
+        "triggerWord": ""
+      },
+      "QWEN_WQ": {
+        "repoid": "Lingyuzhou/Qwen_Wanqian",
+        "triggerWord": "wq"
+      },
+      "QWEN_LYF": {
+        "repoid": "Lingyuzhou/Qwen_Feifei",
+        "triggerWord": "lyf"
+      },
+      "QWEN_CWJ": {
+        "repoid": "Lingyuzhou/Qwen_Caiwenjing",
+        "triggerWord": "cwj"
+      },
+      "QWEN_GLNZ": {
+        "repoid": "Lingyuzhou/Qwen_Nazha",
+        "triggerWord": "nazha"
+      },
+      "QWEN_咖啡猫海报": {
+        "repoid": "Kafeimaomi/KFM-poster",
+        "triggerWord": "poster"
+      },
+      "QWEN_蓝牙海报": {
+        "repoid": "LYshuahshouji/movieposter",
+        "triggerWord": ""
+      },
+      "QWEN_甜妹": {
+        "repoid": "wilderkid/Rednote_SweetGirl",
+        "triggerWord": "sweet girl"
+        },
+      "QWEN_AI模特": {
+        "repoid": "qin8788/shangyeguangao",
+        "triggerWord": "sus"
+      },
+      "QWEN_阿泽写实": {
+        "repoid": "Azer1011/Azer-QWEN",
+        "triggerWord": ""
+      },  
+      "QWEN_kook稳定": {
+        "repoid": "KookYan/Kook_xieshi_Kook_Qwen",
+        "triggerWord": ""
+      },
+      "QWEN_kook美人": {
+        "repoid": "KookYan/Kook_xieshi_Kook_Qwen_V2",
+        "triggerWord": ""
+      },
+      "QWEN_kook设计": {
+        "repoid": "KookYan/Kook_Qwen_qmsj",
+        "triggerWord": ""
+      },  
+      "QWEN_kook写实": {
+        "repoid": "KookYan/Kook_Qwen_JIZHIZHENSHI",
+        "triggerWord": ""
+      },
+      "QWEN_kook幻想": {
+        "repoid": "KookYan/Kook_Qwen_ZSHX",
+        "triggerWord": ""
+      },
+      "QWEN_梦核": {
+        "repoid": "WANGMOON/qwen.dream.v1",
+        "triggerWord": ""
+      },
+      "QWEN_pretty": {
+        "repoid": "WANGMOON/qwen.pretty.v5",
+        "triggerWord": ""
+      },
+      "QWEN_mira": {
+        "repoid": "MTWLDFC/miratsu_style",
+        "triggerWord": "miratsu style"
+      },
+      "QWEN_逆流脸模": {
+        "repoid": "Luxh23/niliuL",
+        "triggerWord": ""
+      },
+      "QWEN_逆流蓝橘": {
+        "repoid": "Luxh23/niliuLJ",
+        "triggerWord": ""
+      },
+      "QWEN_xn脸模": {
+        "repoid": "xnmodel/cnfemale18",
+        "triggerWord": "xnmodel"
+      },
+      "QWEN_瓜女郎": {
+        "repoid": "guahunyo/gua009",
+        "triggerWord": "gua009"
+      },
+      "QWEN_事业线": {
+        "repoid": "抖音小红书事业线美女",
+        "triggerWord": "with prominent breasts,Career line"
+      },      
+      "QWEN_性感": {
+        "repoid": "S19827760/TANK",
+        "triggerWord": "性感女人"
+      },
+      "QWEN_丰满": {
+        "repoid": "ZIMOAIGC/FengmanGirl2025",
+        "triggerWord": "FengmanGirl"
+      },
+      "QWEN_后妈裙": {
+        "repoid": "flyin022602068/xingganbaotunqun",
+        "triggerWord": ""
+      }
+    },
+  "ratios": ["1:1", "2:3", "3:4", "4:3", "3:2", "16:9", "9:16"],
+    "1.5k_ratios": {
+        "1:1": {"width": 1328, "height": 1328},
+        "2:3": {"width": 1056, "height": 1584},
+        "3:4": {"width": 1104, "height": 1472},
+        "4:3": {"width": 1472, "height": 1104},
+        "3:2": {"width": 1584, "height": 1056},
+        "16:9": {"width": 1664, "height": 936},
+        "9:16": {"width": 936, "height": 1664},
+        "21:9": {"width": 2016, "height": 864}
+    },
+    "1k_ratios": {
+        "1:1": {"width": 1024, "height": 1024},
+        "2:3": {"width": 832, "height": 1248},
+        "3:4": {"width": 864, "height": 1152},
+        "4:3": {"width": 1152, "height": 864},
+        "3:2": {"width": 1248, "height": 832},
+        "16:9": {"width": 1344, "height": 768},
+        "9:16": {"width": 768, "height": 1344},
+        "21:9": {"width": 1512, "height": 648}
+    }
+}
