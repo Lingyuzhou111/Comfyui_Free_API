@@ -18,7 +18,7 @@
 | **功能范围** | 文生图 + 图生图 | 仅文生图 |
 | **认证方式** | Cookie + CSRF Token | API Key |
 | **配置文件** | `ms_web_config.json` + `lora_map.json` | `ms_api_config.json` |
-| **Lora数量** | 最多支持 **4个** 串联 | 最多支持 **3个** 串联 |
+| **Lora数量** | 最多支持 **4个** 串联 | 最多支持 **3个** 串联，Lora权重之和必须=1 |
 | **分辨率选择** | 1.5k分辨率 | 有些模型仅支持 1k分辨率 |
 | **生成数量** | 支持 1 / 2 / 4 张 | 固定 1 张 |
 | **高级参数** | inference_steps, cfg_scale | seed, steps, guidance |
