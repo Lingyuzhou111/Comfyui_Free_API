@@ -14,15 +14,15 @@ class ModelScopeImageWeb:
     """
     ComfyUI自定义节点：魔搭生图网页版
     支持文本到图像生成和图像到图像生成，调用魔搭的图像生成模型。
-    支持最多三个Lora串联使用，实现更丰富的图像生成效果。
-    
+    支持最多四个Lora串联使用，最多四张参考图片，实现更丰富的图像生成效果。
+
     功能特性：
     - 文生图模式：根据文本提示词生成图像
-    - 图生图模式：基于参考图片进行图像转换和风格化
-    - Lora支持：可串联使用最多3个Lora模型
+    - 图生图模式：基于参考图片进行图像转换和风格化（最多支持4张参考图）
+    - Lora支持：可串联使用最多4个Lora模型
     - 多种图片比例：支持1:1、4:3、16:9等多种比例
-    
-    输入参数：prompt, model, ratio, ref_image(可选), lora_name_1/2/3/4, lora_weight_1/2/3/4
+
+    输入参数：prompt, model, ratio, image1/image2/image3/image4(可选), lora_name_1/2/3/4, lora_weight_1/2/3/4
     输出：image（生成的图片）, generation_info（生成信息）
     """
     def __init__(self):
@@ -84,14 +84,14 @@ class ModelScopeImageWeb:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
             models = config.get('models', {})
-        
+
         model_options = list(models.keys())
         if not model_options:
             model_options = ['qwen']  # 默认选项
-        
+
         # 比例选项
         ratios = config.get('ratios', ['1:1', '1:2', '3:4', '4:3', '16:9', '9:16'])
-        
+
         # Lora选项（改为从独立的 lora_map.json 读取）
         try:
             lora_map_path = os.path.join(os.path.dirname(__file__), 'lora_map.json')
@@ -101,7 +101,7 @@ class ModelScopeImageWeb:
             print(f"[魔搭生图网页版] 读取lora_map.json失败，将仅提供'none'选项。错误: {e}")
             lora_map = {}
         lora_options = ['none'] + list(lora_map.keys())
-        
+
         return {
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "一只可爱的小猫咪"}),
@@ -109,7 +109,10 @@ class ModelScopeImageWeb:
                 "ratio": (ratios, {"default": "1:1"}),
             },
             "optional": {
-                "ref_image": ("IMAGE",),
+                "image1": ("IMAGE",),
+                "image2": ("IMAGE",),
+                "image3": ("IMAGE",),
+                "image4": ("IMAGE",),
                 "num_images": (["1", "2", "4"], {"default": "1"}),
                 "inference_steps": ("INT", {"default": 30, "min": 4, "max": 50, "step": 1}),
                 "cfg_scale": ("FLOAT", {"default": 4.0, "min": 1.5, "max": 20.0, "step": 0.1}),
@@ -129,26 +132,37 @@ class ModelScopeImageWeb:
     FUNCTION = "generate"
     CATEGORY = "🦉FreeAPI/ModelScope"
 
-    def generate(self, prompt, model, ratio, ref_image=None, lora_name_1="none", lora_weight_1=1.0, lora_name_2="none", lora_weight_2=1.0, lora_name_3="none", lora_weight_3=1.0, lora_name_4="none", lora_weight_4=1.0, inference_steps=30, cfg_scale=4.0, num_images="1"):
+    def generate(self, prompt, model, ratio, image1=None, image2=None, image3=None, image4=None, lora_name_1="none", lora_weight_1=1.0, lora_name_2="none", lora_weight_2=1.0, lora_name_3="none", lora_weight_3=1.0, lora_name_4="none", lora_weight_4=1.0, inference_steps=30, cfg_scale=4.0, num_images="1"):
         """
         主生成方法：
         调用ModelScope Image API进行文本到图像生成或图像到图像生成。
-        支持最多三个Lora串联使用。
-        
+        支持最多四个Lora串联使用，支持最多四张参考图片（图生图模式）。
+
         Args:
             prompt: 文本提示词
             model: 使用的模型名称
             ratio: 图片比例（如1:1、4:3等）
-            ref_image: 可选，参考图片（用于图生图模式）
+            image1/image2/image3/image4: 可选，参考图片（用于图生图模式，最多4张）
             lora_name_1/2/3/4: Lora模型名称
             lora_weight_1/2/3/4: Lora权重（0.1-2.0）
-            
+
         Returns:
             tuple: (生成的图片tensor, 生成信息JSON字符串)
         """
         try:
+            # 收集所有参考图片
+            ref_images = []
+            if image1 is not None:
+                ref_images.append(image1)
+            if image2 is not None:
+                ref_images.append(image2)
+            if image3 is not None:
+                ref_images.append(image3)
+            if image4 is not None:
+                ref_images.append(image4)
+
             # 判断是否为图生图模式
-            is_img2img = ref_image is not None
+            is_img2img = len(ref_images) > 0
             mode_text = "图生图" if is_img2img else "文生图"
             
             print(f"[魔搭生图网页版] 开始{mode_text}，参数: prompt='{prompt}', model='{model}', ratio='{ratio}'")
@@ -247,27 +261,38 @@ class ModelScopeImageWeb:
                 print(f"[魔搭生图网页版] 已添加触发词到提示词: '{final_prompt}'")
 
             # 处理图生图模式
-            ref_image_url = None
-            ref_image_id = None
+            ref_image_urls = []
+            ref_image_ids = []
             if is_img2img:
-                # 上传参考图片并获取验证后的URL
-                ref_image_url = self._upload_image(ref_image)
-                if not ref_image_url:
-                    raise RuntimeError("参考图片上传失败")
-                
-                # 获取图片尺寸信息（从tensor中获取原始尺寸）
-                img_width, img_height = self._get_image_info(ref_image)
-                
-                # 注册图片到系统
-                ref_image_id = self._register_image(ref_image_url, img_width, img_height)
-                if not ref_image_id:
-                    raise RuntimeError("参考图片注册失败")
-                
-                print(f"[魔搭生图网页版] 参考图片处理完成，URL: {ref_image_url}, ID: {ref_image_id}")
+                print(f"[魔搭生图网页版] 处理图生图模式，共 {len(ref_images)} 张参考图片")
+                for idx, ref_img in enumerate(ref_images, 1):
+                    # 上传参考图片并获取验证后的URL
+                    ref_image_url = self._upload_image(ref_img)
+                    if not ref_image_url:
+                        print(f"[魔搭生图网页版] 第{idx}张参考图片上传失败，跳过")
+                        continue
+
+                    # 获取图片尺寸信息（从tensor中获取原始尺寸）
+                    img_width, img_height = self._get_image_info(ref_img)
+
+                    # 注册图片到系统
+                    ref_image_id = self._register_image(ref_image_url, img_width, img_height)
+                    if not ref_image_id:
+                        print(f"[魔搭生图网页版] 第{idx}张参考图片注册失败，跳过")
+                        continue
+
+                    ref_image_urls.append(ref_image_url)
+                    ref_image_ids.append(ref_image_id)
+                    print(f"[魔搭生图网页版] 第{idx}张参考图片处理完成，URL: {ref_image_url}, ID: {ref_image_id}")
+
+                if not ref_image_urls:
+                    raise RuntimeError("所有参考图片处理失败")
+
+                print(f"[魔搭生图网页版] 参考图片处理完成，成功 {len(ref_image_urls)} 张")
 
             # 判断使用快速模式还是专业模式
             has_lora = len(lora_list) > 0
-            is_img2img = bool(ref_image_url)
+            is_img2img = len(ref_image_urls) > 0
 
             # 只要模型具备 checkpointModelVersionId，一律走专业模式（保证可用性与参数完整）
             if model_info.get("checkpointModelVersionId"):
@@ -276,12 +301,12 @@ class ModelScopeImageWeb:
                     print(f"[魔搭生图网页版] 使用专业模式提交任务（包含Lora配置）")
                 else:
                     print(f"[魔搭生图网页版] 使用专业模式提交{mode_type}任务")
-                task_id = self._submit_task_professional(final_prompt, model_info, ratio, lora_list, ref_image_url, ref_image_id, inference_steps, num_images, cfg_scale)
+                task_id = self._submit_task_professional(final_prompt, model_info, ratio, lora_list, ref_image_urls, ref_image_ids, inference_steps, num_images, cfg_scale)
             else:
                 # 无 checkpointModelVersionId 时回退到快速模式
                 mode_type = "图生图" if is_img2img else "文生图"
                 print(f"[魔搭生图网页版] 使用快速模式提交{mode_type}任务")
-                task_id = self._submit_task_quick(final_prompt, model_info, ratio, ref_image_url, ref_image_id, num_images)
+                task_id = self._submit_task_quick(final_prompt, model_info, ratio, ref_image_urls, ref_image_ids, num_images)
             
             if not task_id:
                 raise RuntimeError("任务提交失败")
@@ -307,7 +332,14 @@ class ModelScopeImageWeb:
                 else:
                     model_text = model
                 image_links_text = "\n".join(image_urls)
-                ref_line = f"🖼️ 参考图: {ref_image_url}\n" if (is_img2img and ref_image_url) else ""
+                # 显示所有参考图URL
+                ref_line = ""
+                if is_img2img and ref_image_urls:
+                    if len(ref_image_urls) == 1:
+                        ref_line = f"🖼️ 参考图: {ref_image_urls[0]}\n"
+                    else:
+                        ref_urls_text = "\n  ".join(ref_image_urls)
+                        ref_line = f"🖼️ 参考图 ({len(ref_image_urls)}张):\n  {ref_urls_text}\n"
                 generation_info_text = (
                     f"✨ 任务类型: {mode_detail}\n"
                     f"🎨 模型名称: {model_text}\n"
@@ -333,32 +365,34 @@ class ModelScopeImageWeb:
             print(f"[魔搭生图网页版] 生成失败: {str(e)}")
             raise RuntimeError(f"图片生成失败: {str(e)}")
 
-    def _submit_task_professional(self, prompt, model_info, ratio, lora_list=None, ref_image_url=None, ref_image_id=None, inference_steps=30, num_images="1", cfg_scale=4.0):
+    def _submit_task_professional(self, prompt, model_info, ratio, lora_list=None, ref_image_urls=None, ref_image_ids=None, inference_steps=30, num_images="1", cfg_scale=4.0):
         """
-        专业模式提交任务（支持Lora配置和高级参数）
+        专业模式提交任务（支持Lora配置和高级参数，支持多张参考图）
         Args:
             prompt: 提示词
             model_info: 模型信息
             ratio: 图片比例
-            lora_list: lora信息列表，可选，最多支持3个lora串联
-            ref_image_url: 参考图片URL，用于图生图
-            ref_image_id: 参考图片ID，用于图生图
+            lora_list: lora信息列表，可选，最多支持4个lora串联
+            ref_image_urls: 参考图片URL列表，用于图生图（最多4张）
+            ref_image_ids: 参考图片ID列表，用于图生图（最多4张）
         Returns:
             str: 任务ID，失败返回None
         """
         try:
             # 判断是否为图生图模式
-            is_img2img = ref_image_url is not None and ref_image_id is not None
-            
+            ref_image_urls = ref_image_urls or []
+            ref_image_ids = ref_image_ids or []
+            is_img2img = len(ref_image_urls) > 0 and len(ref_image_ids) > 0
+
             # 图生图模式或有lora时必须使用专业模式
             # 统一：若具备 checkpointModelVersionId 或为图生图，则使用专业模式，否则快速模式
             if is_img2img or model_info.get("checkpointModelVersionId"):
                 # 使用专业模式支持图生图和多个lora串联
                 url = f"{self.api_base_url}/task/submit"
-                
+
                 # 解析比例获取宽高
                 width, height = self._parse_ratio_to_size(ratio)
-                
+
                 # 构建lora参数列表
                 lora_args = []
                 if lora_list:
@@ -367,10 +401,10 @@ class ModelScopeImageWeb:
                             "modelVersionId": lora_info["modelVersionId"],
                             "scale": lora_info["scale"]
                         })
-                
+
                 # 确定预测类型
                 predict_type = "IMG_2_IMG" if is_img2img else "TXT_2_IMG"
-                
+
                 # 构建基础数据结构
                 data = {
                     "modelArgs": {
@@ -405,14 +439,18 @@ class ModelScopeImageWeb:
                     print(f"[魔搭生图网页版] professional.basicDiffusionArgs: {json.dumps(data['basicDiffusionArgs'], ensure_ascii=False)}")
                 except Exception:
                     pass
-                
+
                 # 如果是图生图，添加图片输入参数
+                # 目前API主要支持单张参考图，使用第一张作为主参考图
                 if is_img2img:
                     data["imageInputFrontArgs"] = {
-                        "image": ref_image_url,
-                        "imageId": ref_image_id
+                        "image": ref_image_urls[0],
+                        "imageId": ref_image_ids[0]
                     }
-                
+                    # 如果有多张参考图，记录日志提示（后续可根据API支持情况扩展）
+                    if len(ref_image_urls) > 1:
+                        print(f"[魔搭生图网页版] 检测到 {len(ref_image_urls)} 张参考图，当前使用第1张作为主参考图")
+
                 if is_img2img:
                     print(f"[魔搭生图网页版] 使用专业模式提交图生图任务")
                 elif lora_list:
@@ -465,21 +503,25 @@ class ModelScopeImageWeb:
             print(f"[魔搭生图网页版] 提交任务时发生错误: {str(e)}")
             return None
 
-    def _submit_task_quick(self, prompt, model_info, ratio, ref_image_url=None, ref_image_id=None, num_images="1"):
+    def _submit_task_quick(self, prompt, model_info, ratio, ref_image_urls=None, ref_image_ids=None, num_images="1"):
         """
-        快速模式提交任务（文生图或图生图）
+        快速模式提交任务（文生图或图生图，支持多张参考图）
         Args:
             prompt: 提示词
             model_info: 模型信息
             ratio: 图片比例
-            ref_image_url: 参考图片URL（可选，图生图时使用）
-            ref_image_id: 参考图片ID（可选，图生图时使用）
+            ref_image_urls: 参考图片URL列表（可选，图生图时使用，最多4张）
+            ref_image_ids: 参考图片ID列表（可选，图生图时使用，最多4张）
         Returns:
             str: 任务ID，失败返回None
         """
         try:
             url = "https://www.modelscope.cn/api/v1/muse/predict/task/quickSubmit"
-            
+
+            # 处理参考图参数
+            ref_image_urls = ref_image_urls or []
+            ref_image_ids = ref_image_ids or []
+
             # 构建快速模式的基础数据
             data = {
                 "styleType": model_info["styleType"],
@@ -489,16 +531,19 @@ class ModelScopeImageWeb:
                     "numImagesPerPrompt": int(num_images)
                 }
             }
-            
+
             # 判断是文生图还是图生图
-            if ref_image_url and ref_image_id:
-                # 图生图模式
+            if len(ref_image_urls) > 0 and len(ref_image_ids) > 0:
+                # 图生图模式 - 使用第一张图片作为主参考图
                 data["predictType"] = "IMG_2_IMG"
                 data["description"] = prompt
                 data["imageInputFrontArgs"] = {
-                    "image": ref_image_url,
-                    "imageId": ref_image_id
+                    "image": ref_image_urls[0],
+                    "imageId": ref_image_ids[0]
                 }
+                # 如果有多张参考图，记录日志提示
+                if len(ref_image_urls) > 1:
+                    print(f"[魔搭生图网页版] 快速模式检测到 {len(ref_image_urls)} 张参考图，当前使用第1张")
             else:
                 # 文生图模式
                 data["predictType"] = "TXT_2_IMG"
