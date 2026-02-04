@@ -2,37 +2,37 @@
 
 > 一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析、视频分析、视频生成等功能。
 
-> 精选Gemini、GLM、Qwen、Siliconflow四个官方平台的API接口，针对新用户均有免费使用额度，新手友好。
+> 精选Gemini/GLM/Qwen/Siliconflow/火山/魔搭/心流/美团/书生等多个官方平台的API接口，各家几乎均有免费使用额度，新手友好。
 
-> **250715** ：通过在插件目录下的config.json文件中添加`model`名称，然后重启ComfyUI即可添加以上平台的更多模型。
-
-> **250717** ：新增OpenAI兼容Chat API和Image API节点，任何兼容OpenAI通用接口格式的文本、视觉和画图API节点均可使用。
-
-> **250717** ：新增Qwen Image API和Qwen Video API节点，支持最新的Wan2.2文生图、Wan2.2文生视频、Wan2.2图生视频和Wan2.1首尾帧生视频。
-
-> **250729** ：GLM LLM API节点支持最新的glm-4.5、glm-4.5-air和glm-4.5-flash推理模型。
-
-> **250805** ：新增支持硅基流动、火山方舟、魔搭等API平台的图像生成，支持调用第三方gpt-image-1的API进行多图编辑
-
-> **250817** ：新增支持Qwen-TTS的语音合成，Siliconflow-TTS的语音合成和语音识别节点
-
-> **250818** ：Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
-
-> **250819** ：新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
-
-> **250909** ：新增LLM Prompt Enhance和VLM Prompt Enhance节点支持预设提示增强功能
-
-> **250912** ：新增Free Translate节点支持免费的多语种翻译
-
-> **251001** ：新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
-
-> **251008** ：将OpenAI Sora API节点拆分为Chat(同步)模式和Async(异步)模式，支持302和T8star双平台一键切换
-
-> **251014** ：新增Grok imagine i2v图生视频节点(需要特殊网络环境)
+> **260204** ：新增Hunyuan i2i节点(混元图生图)；ModelScope Image Web节点（魔搭生图网页版）更新，支持最新的Z-Image-Base和Flux2 Klein 9B；新增ModelScope Image API节点(魔搭生图API版，每个模型每天最多500次，支持Lora，所有Lora权重之和必须=1)
 
 > **251027** ：新增Haiyi AI生图和AI生视频节点
 
-> **260204** ：新增Hunyuan i2i节点(混元图生图)；ModelScope Image Web节点（魔搭生图网页版）更新，支持最新的Z-Image-Base和Flux2 Klein 9B；新增ModelScope Image API节点(魔搭生图API版，每个模型每天最多500次，支持Lora，所有Lora权重之和必须=1)
+> **251014** ：新增Grok imagine i2v图生视频节点(需要特殊网络环境)
+
+> **251008** ：将OpenAI Sora API节点拆分为Chat(同步)模式和Async(异步)模式，支持302和T8star双平台一键切换
+
+> **251001** ：新增OpenAI Sora API节点支持调用302平台的sora-2生成视频
+
+> **250912** ：新增Free Translate节点支持免费的多语种翻译
+
+> **250909** ：新增LLM Prompt Enhance和VLM Prompt Enhance节点支持预设提示增强功能
+
+> **250819** ：新增Qwen Image Edit API节点支持最新的qwen-image-edit图生图功能
+
+> **250818** ：Qwen Image API(阿里云百炼)和OpenAI Image API(支持魔搭API)节点支持最新的qwen-image文生图功能
+
+> **250817** ：新增支持Qwen-TTS的语音合成，Siliconflow-TTS的语音合成和语音识别节点
+
+> **250805** ：新增支持硅基流动、火山方舟、魔搭等API平台的图像生成，支持调用第三方gpt-image-1的API进行多图编辑
+
+> **250729** ：GLM LLM API节点支持最新的glm-4.5、glm-4.5-air和glm-4.5-flash推理模型。
+
+> **250717** ：新增Qwen Image API和Qwen Video API节点，支持最新的Wan2.2文生图、Wan2.2文生视频、Wan2.2图生视频和Wan2.1首尾帧生视频。
+
+> **250717** ：新增OpenAI兼容Chat API和Image API节点，任何兼容OpenAI通用接口格式的文本、视觉和画图API节点均可使用。
+
+> **250715** ：通过在插件目录下的config.json文件中添加`model`名称，然后重启ComfyUI即可添加以上平台的更多模型。
 
 ## 📖 示例工作流
 ####  新增Haiyi AI生图和AI生视频节点
@@ -235,6 +235,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
