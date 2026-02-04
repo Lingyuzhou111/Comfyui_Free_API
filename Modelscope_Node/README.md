@@ -1,22 +1,49 @@
-# ModelScope Image API 节点
+# ModelScope 魔搭生图节点
 
 ## 概述
 
-ModelScope Image API 节点是一个适配 ComfyUI 的自定义节点，用于调用魔搭（ModelScope）的图像生成服务。该节点支持多种模型和 Lora，可以生成高质量的图像。
+本目录包含两个 ComfyUI 自定义节点，用于调用魔搭（ModelScope）的图像生成服务：
 
-## 功能特性
+| 节点 | 文件名 | 显示名称 | 适用场景 |
+|-----|--------|---------|---------|
+| **网页版** | `modelscope_image_web.py` | 🦉魔搭生图网页版 | 功能全面，支持图生图 |
+| **API版** | `modelscope_image_api.py` | 🦉魔搭生图API版 | 简单易用，仅文生图 |
 
-- **多模型支持**：支持 Qwen Image、FLUX、FLUX Kontext、FLUX Krea、麦橘超然、写实风、动漫风、水墨画等多种模型
-- **多Lora串联**：支持最多三个Lora模型串联使用，实现更丰富的图像生成效果
+---
+
+## 两个版本对比
+
+| 对比项 | 网页版 | API版 |
+|-------|-------|-------|
+| **功能范围** | 文生图 + 图生图 | 仅文生图 |
+| **认证方式** | Cookie + CSRF Token | API Key |
+| **配置文件** | `ms_web_config.json` + `lora_map.json` | `ms_api_config.json` |
+| **Lora数量** | 最多支持 **4个** 串联 | 最多支持 **3个** 串联 |
+| **分辨率选择** | 1.5k分辨率 | 有些模型仅支持 1k分辨率 |
+| **生成数量** | 支持 1 / 2 / 4 张 | 固定 1 张 |
+| **高级参数** | inference_steps, cfg_scale | seed, steps, guidance |
+| **运行模式** | 专业模式 + 快速模式 | 标准API模式 |
+| **图片上传** | ✅ 支持参考图上传 | ❌ 不支持 |
+
+---
+
+## 1. 魔搭生图网页版（推荐功能全面）
+
+### 功能特性
+
+- **文生图**：根据文本提示词生成图像
+- **图生图**：基于参考图片进行图像转换和风格化
+- **多Lora支持**：最多支持 **4个** Lora模型串联使用
 - **多种比例**：支持 1:1、1:2、3:4、4:3、16:9、9:16 等多种图片比例
+- **多图生成**：一次可生成 1/2/4 张图片
+- **高级参数**：支持调整 inference_steps（推理步数）和 cfg_scale（引导系数）
 - **实时状态**：提供任务状态监控和剩余次数查询
-- **完整信息**：返回图片和详细的生成信息
 
-## 安装配置
+### 安装配置
 
-### 1. 配置文件
+#### 配置文件
 
-在 `Modelscope_Node` 目录下需要 `ms_config.json` 配置文件，包含以下内容：
+在 `Modelscope_Node` 目录下创建 `ms_web_config.json`：
 
 ```json
 {
@@ -31,25 +58,8 @@ ModelScope Image API 节点是一个适配 ComfyUI 的自定义节点，用于�
   "models": {
     "qwen": {
       "name": "Qwen Image",
-      "styleType": "QWEN_IMAGE"
-    },
-    "flux": {
-      "name": "FLUX",
-      "styleType": "FLUX"
-    }
-  },
-  "lora_map": {
-    "QWEN_麦橘美人": {
-      "modelName": "merjic/majicbeauty-qwen1",
-      "modelVersionId": "282253",
-      "triggerWord": "",
-      "weight": 1.0
-    },
-    "QWEN_极致写实": {
-      "modelName": "Lingyuzhou/Qwen_Lenovo_UltraReal",
-      "modelVersionId": "314073",
-      "triggerWord": "",
-      "weight": 1.0
+      "styleType": "QWEN_IMAGE",
+      "checkpointModelVersionId": "your_checkpoint_id"
     }
   },
   "ratios": ["1:1", "1:2", "3:4", "4:3", "16:9", "9:16"],
@@ -64,147 +74,231 @@ ModelScope Image API 节点是一个适配 ComfyUI 的自定义节点，用于�
 }
 ```
 
-### 2. 获取配置信息
+同时创建 `lora_map.json` 配置Lora模型：
+
+```json
+{
+  "QWEN_麦橘美人": {
+    "modelName": "merjic/majicbeauty-qwen1",
+    "modelVersionId": "282253",
+    "triggerWord": "",
+    "weight": 1.0
+  },
+  "QWEN_极致写实": {
+    "modelName": "Lingyuzhou/Qwen_Lenovo_UltraReal",
+    "modelVersionId": "314073",
+    "triggerWord": "",
+    "weight": 1.0
+  }
+}
+```
+
+#### 获取配置信息
 
 1. **登录魔搭网站**：访问 https://www.modelscope.cn 并登录
 2. **获取 Cookie**：在浏览器开发者工具中复制所有 cookie
 3. **获取 CSRF Token**：在开发者工具中找到 `csrf_token` 的值
 ```
-**快捷模式**
-1.点进AIGC专区➡️图片生成➡️ctrl+shift+i(相当于F12)进入开发者模式➡️随便画一张图，右边选择"网络"然后找到quicksubmit或者submit标签，右键复制为cRUL(bash)
-2.然后把上面的ms_config.json和curl信息打包扔给AI，让它帮你自动填好
+**快捷模式**：
+1. 进入AIGC专区 → 图片生成 → 按 `Ctrl+Shift+I` 进入开发者模式
+2. 随便画一张图，在"网络"标签中找到 `quicksubmit` 或 `submit` 请求
+3. 右键复制为 cURL(bash)，让AI帮你提取配置信息
 
 **添加自定义lora**
 1.跟上面差不多，点进AIGC专区➡️找到心仪的lora,点击一键生成➡️ctrl+shift+i(相当于F12)进入开发者模式➡️随便画一张图，找到右边的submit标签，右键复制为cRUL(bash)
 2.找到里面的modelVersionId所对应的6位数字，按照ms_config.json同样的格式填入即可
 ```
 
-## 使用方法
+### 节点参数
+
+#### 必需参数
+| 参数 | 类型 | 说明 |
+|-----|------|------|
+| `prompt` | STRING | 图片描述词，支持多行文本 |
+| `model` | SELECT | 选择使用的模型 |
+| `ratio` | SELECT | 选择图片比例 |
+
+#### 可选参数
+| 参数 | 类型 | 默认值 | 说明 |
+|-----|------|-------|------|
+| `ref_image` | IMAGE | - | 参考图片（图生图模式） |
+| `num_images` | SELECT | "1" | 生成图片数量（1/2/4） |
+| `inference_steps` | INT | 30 | 推理步数（4-50） |
+| `cfg_scale` | FLOAT | 4.0 | 引导系数（1.5-20.0） |
+| `lora_name_1/2/3/4` | SELECT | "none" | Lora模型名称 |
+| `lora_weight_1/2/3/4` | FLOAT | 1.0 | Lora权重（0.1-2.0） |
+
+#### 输出结果
+| 输出 | 类型 | 说明 |
+|-----|------|------|
+| `image` | IMAGE | 生成的图片（batch格式） |
+| `generation_info` | STRING | 生成信息（包含图片链接、模型、Lora等） |
+
+---
+
+## 2. 魔搭生图API版（推荐简单易用）
+
+### 功能特性
+
+- **文生图**：根据文本提示词生成图像
+- **多Lora支持**：最多支持 **3个** Lora模型串联使用
+- **多种比例**：支持 1:1、2:3、3:4、4:3、3:2、9:16、16:9、21:9 等多种比例
+- **分辨率选择**：支持 1k 和 1.5k 两种分辨率
+- **可控参数**：支持调整 seed（随机种子）、steps（步数）、guidance（引导系数）
+- **异步任务**：使用轮询方式获取任务结果
+
+### 安装配置
+
+#### 配置文件
+
+在 `Modelscope_Node` 目录下创建 `ms_api_config.json`：
+
+```json
+{
+  "modelscope_image_api": {
+    "base_url": "https://api-inference.modelscope.cn/v1/images/generations",
+    "api_key": "你的魔搭API密钥"
+  },
+  "checkpoint": [
+    "Tongyi-MAI/Z-Image",
+    "Tongyi-MAI/Z-Image-Turbo",
+    "Qwen/Qwen-Image-2512"
+  ],
+  "lora_map": {
+    "麦橘美人": {
+      "repoid": "merjic/majicbeauty-qwen1",
+      "triggerWord": "majicbeauty"
+    }
+  }
+}
+```
+
+#### 获取API Key
+
+1. 访问 https://www.modelscope.cn 并登录
+2. 进入"我的" → "API令牌" 页面
+3. 创建新的API令牌并复制
 
 ### 节点参数
 
 #### 必需参数
-- **prompt** (STRING): 图片描述词，支持多行文本
-- **model** (SELECT): 选择使用的模型
-- **ratio** (SELECT): 选择图片比例
+| 参数 | 类型 | 说明 |
+|-----|------|------|
+| `prompt` | STRING | 正向提示词，描述想要生成的图像内容 |
+| `model` | SELECT | 选择文生图模型 |
+| `ratio` | SELECT | 输出图像的宽高比 |
+| `resolution` | SELECT | 输出图像分辨率（1k或1.5k） |
 
 #### 可选参数
-- **lora_name_1** (SELECT): 选择第一个 Lora 模型，默认为 "none"
-- **lora_weight_1** (FLOAT): 第一个 Lora 权重，范围 0.1-2.0，默认 1.0
-- **lora_name_2** (SELECT): 选择第二个 Lora 模型，默认为 "none"
-- **lora_weight_2** (FLOAT): 第二个 Lora 权重，范围 0.1-2.0，默认 1.0
-- **lora_name_3** (SELECT): 选择第三个 Lora 模型，默认为 "none"
-- **lora_weight_3** (FLOAT): 第三个 Lora 权重，范围 0.1-2.0，默认 1.0
+| 参数 | 类型 | 默认值 | 范围 | 说明 |
+|-----|------|-------|------|------|
+| `seed` | INT | -1 | -1 到 2147483647 | 随机种子，-1为随机生成 |
+| `steps` | INT | 30 | 1-100 | 推理步数 |
+| `guidance` | FLOAT | 3.5 | 1.0-20.0 | 引导系数 |
+| `lora_name_1/2/3` | SELECT | "none" | - | Lora模型名称 |
+| `lora_weight_1/2/3` | FLOAT | 1.0 | 0.0-2.0 | Lora权重系数 |
 
-### 输出结果
+#### 输出结果
+| 输出 | 类型 | 说明 |
+|-----|------|------|
+| `image` | IMAGE | 生成的图片 |
+| `generation_info` | STRING | 生成信息（包含图片链接、任务ID等） |
 
-- **image** (IMAGE): 生成的图片，ComfyUI 标准格式
-- **generation_info** (STRING): 生成信息，包含以下内容：
-  - `image_url`: 图片下载链接
-  - `remaining_count`: 剩余次数信息
-  - `model`: 使用的模型
-  - `ratio`: 图片比例
-  - `lora_names`: 使用的 Lora 名称列表（如果有）
-  - `lora_weights`: Lora 权重列表（如果有）
+---
 
-### 使用示例
+## 如何选择？
 
-#### 基础使用
-```
-prompt: "一只可爱的小猫咪"
-model: "qwen"
-ratio: "1:1"
-```
+| 需求场景 | 推荐版本 |
+|---------|---------|
+| 需要图生图功能 | ✅ 网页版 |
+| 需要一次生成多张图 | ✅ 网页版 |
+| 需要更多Lora串联（4个） | ✅ 网页版 |
+| 追求简单配置、稳定运行 | ✅ API版 |
+| 只需要文生图基础功能 | ✅ API版 |
+| 需要调整seed种子值 | ✅ API版 |
+| 需要灵活选择分辨率（1k/1.5k） | ✅ API版 |
+| 不想处理Cookie过期问题 | ✅ API版 |
 
-#### 使用单个 Lora
-```
-prompt: "一个美丽的女孩"
-model: "qwen"
-ratio: "9:16"
-lora_name_1: "麦橘美人"
-lora_weight_1: 0.8
-```
-
-#### 使用多个 Lora 串联
-```
-prompt: "一个美丽的女孩，节日风格"
-model: "qwen"
-ratio: "9:16"
-lora_name_1: "麦橘美人"
-lora_weight_1: 0.8
-lora_name_2: "极致写实"
-lora_weight_2: 0.6
-```
-
-#### 不同风格
-```
-prompt: "一幅水墨山水画"
-model: "ink"
-ratio: "16:9"
-```
-
-## 支持的模型
-
-| 模型名称 | 描述 | 是否支持 Lora |
-|---------|------|---------------|
-| qwen | Qwen Image 模型 | ✅ |
-| flux | FLUX 模型 | ⚠️ 需要配置checkpointModelVersionId |
-| kontext | FLUX Kontext 模型 | ⚠️ 需要配置checkpointModelVersionId |
-| krea | FLUX Krea 模型 | ⚠️ 需要配置checkpointModelVersionId |
-| majic | 麦橘超然模型 | ⚠️ 需要配置checkpointModelVersionId |
-| realistic | 写实风模型 | ⚠️ 需要配置checkpointModelVersionId |
-| anime | 动漫风模型 | ⚠️ 需要配置checkpointModelVersionId |
-| ink | 水墨画模型 | ⚠️ 需要配置checkpointModelVersionId |
-
-**注意**: 理论上所有模型都支持Lora，但需要在配置文件中为每个模型添加`checkpointModelVersionId`配置。目前只有Qwen模型已配置此参数。
+---
 
 ## 支持的比例
 
-| 比例 | 分辨率 | 适用场景 |
-|------|--------|----------|
-| 1:1 | 1328×1328 | 头像、图标 |
-| 1:2 | 832×1664 | 手机壁纸 |
-| 3:4 | 1140×1482 | 竖版海报 |
-| 4:3 | 1482×1140 | 横版海报 |
-| 9:16 | 928×1664 | 手机屏幕 |
-| 16:9 | 1664×928 | 电脑屏幕 |
+| 比例 | 网页版分辨率 | API版1k分辨率 | API版1.5k分辨率 | 适用场景 |
+|------|-------------|--------------|----------------|----------|
+| 1:1 | 1328×1328 | 1024×1024 | 1328×1328 | 头像、图标 |
+| 1:2 | 832×1664 | - | - | 手机壁纸 |
+| 2:3 | - | 832×1248 | 1056×1584 | 竖版照片 |
+| 3:2 | - | 1248×832 | 1584×1056 | 横版照片 |
+| 3:4 | 1140×1482 | 864×1152 | 1104×1472 | 竖版海报 |
+| 4:3 | 1482×1140 | 1152×864 | 1472×1104 | 横版海报 |
+| 9:16 | 928×1664 | 768×1344 | 936×1664 | 手机屏幕 |
+| 16:9 | 1664×928 | 1344×768 | 1664×936 | 电脑屏幕 |
+| 21:9 | - | 1512×648 | 2016×864 | 宽屏显示 |
+
+---
 
 ## 注意事项
 
-1. **Cookie 配置**：必须正确配置魔搭网站的 cookie 才能正常使用
+### 通用注意事项
+
+1. **网络要求**：需要稳定的网络连接访问魔搭服务
 2. **使用限制**：魔搭有每日使用次数限制，请合理使用
-3. **网络要求**：需要稳定的网络连接访问魔搭服务
-4. **等待时间**：图片生成需要时间，请耐心等待
-5. **Lora 支持**：理论上所有模型都支持Lora，但需要在配置文件中为每个模型添加`checkpointModelVersionId`配置。目前只有Qwen模型已配置此参数，最多支持三个 Lora 串联使用
+3. **等待时间**：图片生成需要时间，请耐心等待
+
+### 网页版特有注意事项
+
+1. **Cookie配置**：必须正确配置 `cookies` 和 `csrf_token` 才能正常使用
+2. **Cookie过期**：Cookie 可能会过期，需要定期更新
+3. **图生图限制**：参考图片需要先上传到魔搭服务器，有大小限制（建议不超过5MB）
+
+### API版特有注意事项
+
+1. **API Key安全**：请妥善保管 API Key，不要泄露给他人
+2. **LoRA权重**：使用多个LoRA时，建议权重之和为 1.0 以获得最佳效果
+3. **异步任务**：任务提交后需要轮询获取结果，可能需要等待一段时间
+
+---
 
 ## 错误处理
 
-节点会处理以下常见错误：
-- 配置错误：检查 cookie 和 csrf_token 是否正确
-- 网络错误：检查网络连接
-- 模型错误：检查模型名称是否正确
-- 比例错误：自动回退到默认比例
-- 超时错误：任务超时会自动终止
+### 常见错误及解决方案
+
+| 错误 | 可能原因 | 解决方案 |
+|-----|---------|---------|
+| 认证失败 | Cookie/Token/API Key 错误 | 检查配置文件中的认证信息 |
+| 网络错误 | 网络连接问题 | 检查网络连接，确认能否访问 modelscope.cn |
+| 模型错误 | 模型名称不正确 | 检查配置文件中的模型配置 |
+| 任务超时 | 生成时间过长 | 增加超时设置或稍后重试 |
+| 上传失败 | 图片过大或格式问题 | 压缩图片或更换格式（推荐PNG/JPG） |
+
+---
 
 ## 调试信息
 
-节点会输出详细的调试信息，包括：
+两个节点都会输出详细的调试信息到控制台，包括：
 - 任务提交状态
 - 图片生成进度
 - 剩余次数信息
+- 使用的Lora和权重
 - 错误详情
+
+---
 
 ## 更新日志
 
+### v2.0.0（当前版本）
+- 拆分两个独立节点：网页版和API版
+- 网页版支持4个Lora串联（原为3个）
+- 新增详细的版本对比文档
+- 优化配置说明和使用指南
+
 ### v1.1.0
 - 支持最多三个 Lora 串联使用
-- 优化 Lora 参数结构，支持 lora_name_1/lora_weight_1, lora_name_2/lora_weight_2, lora_name_3/lora_weight_3
-- 更新生成信息输出格式，支持多个 Lora 信息
-- 修正Lora支持说明：理论上所有模型都支持Lora，需要配置checkpointModelVersionId
+- 所有Lora权重之和加起来必须=1，否则会报错
+- 更新生成信息输出格式
 
 ### v1.0.0
 - 初始版本
 - 支持多种模型和比例
 - 支持单个 Lora 功能
 - 完整的错误处理
-- 详细的调试信息
