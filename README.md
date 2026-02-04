@@ -32,6 +32,8 @@
 
 > **251027** ：新增Haiyi AI生图和AI生视频节点
 
+> **260204** ：新增Hunyuan i2i节点(混元图生图)；新增ModelScope Image API节点(魔搭API版生图，每个模型每天最多500次，支持Lora，所有Lora权重之和必须=1)
+
 ## 📖 示例工作流
 ####  新增Haiyi AI生图和AI生视频节点
 <img width="445" height="580" alt="wechat_2025-10-26_231947_777" src="https://github.com/user-attachments/assets/61acf51c-7482-40ab-a92e-4c2ec5c22427" />
@@ -233,6 +235,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
