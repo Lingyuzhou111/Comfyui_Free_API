@@ -4,8 +4,9 @@
   "cookie": "",
   "timeout": 30,
   "max_wait_time": 600,
-  "check_interval": 5, 
+  "check_interval": 6, 
   "models": ["hunyuan-image-v3.0-v1.0.1"],
+  "i2i_models": ["Hunyuan-Image-3.0-Instruct"],
   "default_size": "896x1152",
   "ratios": ["1:1", "3:4", "4:3", "16:9", "9:16"],
   "ratio_map": {
