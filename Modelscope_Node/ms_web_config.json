@@ -62,6 +62,12 @@
       "checkpointModelVersionId": 504024,
       "checkpointShowInfo": "Laushine/z_animimage_turbo_by_Lau_alpha_V1_V1.0"
     },
+    "FLUX.2-klein-9B": {
+      "name": "FLUX.2-klein-base-9B",
+      "styleType": "FLUX.2-klein-base-9B",
+      "checkpointModelVersionId": 578135,
+      "checkpointShowInfo": "black-forest-labs/FLUX.2-klein-base-9B_master"
+    },
     "FLUX.2-klein-9B_2.0": {
       "name": "FLUX.2-klein-9B_2.0",
       "styleType": "FLUX.2-klein-9B_2.0",
@@ -125,4 +131,5 @@
     "16:9": {"width": 1664, "height": 928}
   }
 } 
+
 
