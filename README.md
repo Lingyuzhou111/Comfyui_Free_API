@@ -2,7 +2,7 @@
 
 > 一个为ComfyUI提供多种免费AI API服务的插件，支持文本对话、图像生成、图像分析、视频分析、视频生成等功能。
 
-> 精选Gemini/GLM/Qwen/Siliconflow/火山/魔搭/心流/美团/书生等多个官方平台的API接口，各家几乎均有免费使用额度，新手友好。
+> 支持Gemini/GLM/Siliconflow/阿里云/火山/魔搭/心流/美团/书生等主流官方平台的API接口，各家几乎均有免费使用额度，新手友好。
 
 > **260204** ：新增Hunyuan i2i节点(混元图生图)；ModelScope Image Web节点（魔搭生图网页版）更新，支持多个版本的Z-Image和Flux2 Klein 9B；新增ModelScope Image API节点(魔搭生图API版，每个模型每天最多500次，支持Lora，所有Lora权重之和必须=1)
 
@@ -235,6 +235,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
