@@ -32,7 +32,7 @@
 
 > **251027** ：新增Haiyi AI生图和AI生视频节点
 
-> **260204** ：新增Hunyuan i2i节点(混元图生图)；新增ModelScope Image API节点(魔搭API版生图，每个模型每天最多500次，支持Lora，所有Lora权重之和必须=1)
+> **260204** ：新增Hunyuan i2i节点(混元图生图)；ModelScope Image Web节点（魔搭生图网页版）更新，支持最新的Z-Image-Base和Flux2 Klein 9B；新增ModelScope Image API节点(魔搭生图API版，每个模型每天最多500次，支持Lora，所有Lora权重之和必须=1)
 
 ## 📖 示例工作流
 ####  新增Haiyi AI生图和AI生视频节点
@@ -235,6 +235,7 @@ A: 尝试：
 ---
 
 **注意**: 使用前请确保你有相应API服务的有效账户和足够的配额。 
+
 
 
 
