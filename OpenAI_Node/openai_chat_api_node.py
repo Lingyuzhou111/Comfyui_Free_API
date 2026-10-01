@@ -162,6 +162,10 @@ class OpenAIChatAPI:
                 #print(f"[OpenAIChatAPI] 载荷: {self._safe_json_dumps(payload)}")
                 resp = requests.post(api_url, headers=headers, json=payload, timeout=120, stream=True)
                 print(f"[OpenAIChatAPI] 响应状态码: {resp.status_code}")
+                # SSE 的 Content-Type 经常没有声明 charset；requests 对 text/*
+                # 默认可能按 ISO-8859-1 解码，中文随后会变成“æ...”这类乱码。
+                # 在 iter_lines(decode_unicode=True) 之前显式指定 UTF-8。
+                resp.encoding = "utf-8"
                 # 显式记录：响应头关键信息（避免打印所有敏感头）
                 try:
                     hdrs = dict(resp.headers)
@@ -252,6 +256,8 @@ class OpenAIChatAPI:
         - responses：解析 output[*].content[*] 中 type=output_text 的 text
         """
         try:
+            # 某些兼容网关不在响应头声明 charset；统一按 UTF-8 读取文本。
+            resp.encoding = "utf-8"
             if resp.status_code != 200:
                 error_text = resp.text
                 print(f"[OpenAIChatAPI] API返回错误状态码: {resp.status_code}")
@@ -423,7 +429,7 @@ class OpenAIChatAPI:
         """
         return {
             "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
             # 明确声明期望 SSE 文本，且禁止压缩，避免 gzip/br 导致的“乱码”
             "Accept": "text/event-stream, application/json",
             "Cache-Control": "no-cache",
@@ -472,13 +478,17 @@ class OpenAIChatAPI:
         """
         if not isinstance(s, str) or not s:
             return s or ""
-        sample = s[:8]
-        suspicious = ("Ã", "å", "æ", "ç", "ð", "þ")
-        if any(ch in sample for ch in suspicious):
+        # 乱码经常出现在英文开头之后，因此不能只检查前几个字符。
+        suspicious = ("Ã", "Â", "Ð", "Ñ", "å", "æ", "ç", "ð", "þ")
+        if any(ch in s for ch in suspicious):
             try:
-                return s.encode("latin-1", errors="ignore").decode("utf-8", errors="ignore")
+                # 只有完整的 Latin-1 -> UTF-8 逆转成功时才替换，避免 errors="ignore"
+                # 静默丢掉真实内容。
+                repaired = s.encode("latin-1").decode("utf-8")
+                if repaired != s:
+                    return repaired
             except Exception:
-                return s
+                pass
         return s
 
     def _parse_responses_stream(self, resp):
@@ -505,6 +515,9 @@ class OpenAIChatAPI:
             return s
 
         try:
+            # iter_lines(decode_unicode=True) 使用 resp.encoding 解码每一行。
+            # 服务端未返回 charset 时必须在这里明确指定 UTF-8。
+            resp.encoding = "utf-8"
             for raw in resp.iter_lines(decode_unicode=True):
                 if raw is None:
                     continue
