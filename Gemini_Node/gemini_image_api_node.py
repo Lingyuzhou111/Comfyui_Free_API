@@ -107,7 +107,7 @@ class GeminiImageAPI:
             
             # 详细记录请求头信息，用于调试401认证错误
             print(f"=== 请求头详细信息 ===")
-            print(f"Authorization: Bearer {api_key[:10]}...{api_key[-10:] if len(api_key) > 20 else '***'}")
+            print("Authorization: Bearer *** (redacted)")
             print(f"Content-Type: {headers.get('Content-Type', '未设置')}")
             print(f"API Key长度: {len(api_key)} 字符")
             print(f"API Key是否为空: {not api_key}")
@@ -185,7 +185,7 @@ class GeminiImageAPI:
             
             # 详细记录请求头信息，用于调试401认证错误
             print(f"=== 请求头详细信息 ===")
-            print(f"Authorization: Bearer {api_key[:10]}...{api_key[-10:] if len(api_key) > 20 else '***'}")
+            print("Authorization: Bearer *** (redacted)")
             print(f"Content-Type: {headers.get('Content-Type', '未设置')}")
             print(f"API Key长度: {len(api_key)} 字符")
             print(f"API Key是否为空: {not api_key}")
@@ -500,7 +500,7 @@ class GeminiImageAPI:
         if not api_key:
             print("警告: API Key为空")
         elif not api_key.startswith('AIza'):
-            print(f"警告: API Key格式可能不正确，应以'AIza'开头，当前开头: {api_key[:4]}")
+            print("警告: API Key格式可能不正确，应以'AIza'开头")
         elif len(api_key) < 30:
             print(f"警告: API Key长度可能过短，当前长度: {len(api_key)}")
         
