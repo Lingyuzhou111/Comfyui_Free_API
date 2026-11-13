@@ -174,7 +174,10 @@ import { app } from "/scripts/app.js";
       document.body.appendChild(style);
 
       // 监听菜单创建，命中我们的 role_name 时进行 DOM 重排为折叠目录
-      const { $el } = await import("/scripts/ui.js");
+      // 新版前端已弃用 ui.js 兼容层（shim 提示将在 v1.34 移除），
+      // 且本文件从未使用 $el。原先的动态导入在 shim 被移除后会抛错并中断
+      // 整个 setup()，导致树形菜单功能失效，故直接移除该行。
+      // 若以后确需 $el / ComfyDialog，请改用 window.comfyAPI.ui.$el。
       const mutationObserver = new MutationObserver((mutations) => {
         const node = app.canvas?.current_node;
         if (!node || !isTargetNode(node)) return;
